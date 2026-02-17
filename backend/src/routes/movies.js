@@ -1,6 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
+const { getMovies, getMovieById  } = require("../controllers/moviesController");
+
+router.get("/", getMovies);
+
+router.get("/:id", getMovieById);
+
 router.get("/", async (req, res) => {
   const year = req.query.year ? parseInt(req.query.year, 10) : null;
 
