@@ -1,9 +1,9 @@
-import { movies } from "@/mocks/movies"
+import { mockMovies } from "@/mocks/movies"
 
 export async function getMovies() {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(movies)
+      resolve(mockMovies)
     }, 300)
   })
 }
@@ -12,7 +12,7 @@ export async function getMovie(id) {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(
-        movies.find(m => m.id == id)
+        mockMovies.find(m => m.movie_id === Number(id))
       )
     }, 300)
   })
