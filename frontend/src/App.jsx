@@ -1,12 +1,7 @@
-import { RouterProvider } from 'react-router-dom';
-import { router } from './app/router';
-
-function App() {
+export default function App() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <RouterProvider router={router} />
+    <div style={{ padding: "40px", fontSize: "24px" }}>
+      Movie Database Tool – Frontend Running
     </div>
   );
 }
-
-export default App;
