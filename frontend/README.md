@@ -1,16 +1,62 @@
-# React + Vite
+# Movie Database Tool
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + Vite application for browsing a movie database with dynamic poster loading.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🎬 Browse 50+ classic and modern movies
+- 🖼️ Dynamic poster loading from TMDB (The Movie Database)
+- 📱 Responsive grid layout
+- 🌙 Dark theme
+- ⚡ Fast loading with image caching
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-## Expanding the ESLint configuration
+2. **Get TMDB API Key (Required for posters):**
+   - Visit [TMDB API Settings](https://www.themoviedb.org/settings/api)
+   - Create a free account and request an API key
+   - Copy your API key
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+3. **Configure API Key:**
+   - Open `src/lib/tmdbService.js`
+   - Replace `'your_tmdb_api_key_here'` with your actual TMDB API key:
+   ```javascript
+   const TMDB_API_KEY = 'YOUR_API_KEY_HERE';
+   ```
+
+4. **Start development server:**
+   ```bash
+   npm run dev
+   ```
+
+## Without API Key
+
+If you don't set up the TMDB API key, the app will still work but show placeholder images instead of actual movie posters.
+
+## Tech Stack
+
+- React 18
+- Vite
+- Tailwind CSS
+- TMDB API
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── MovieCard.jsx      # Individual movie card with poster
+│   └── Navbar.jsx         # Navigation header
+├── lib/
+│   └── tmdbService.js     # TMDB API integration
+├── mocks/
+│   └── movies.js          # Movie data
+├── pages/
+│   └── Home.jsx           # Main page with movie grid
+└── App.jsx                # Root component
+```

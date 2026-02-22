@@ -1,32 +1,17 @@
-import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
-import { getMovies } from "@/features/movies/api"
+import { movies } from '../mocks/movies';
+import MovieCard from '../components/MovieCard';
 
-export default function Home() {
-  const [movies, setMovies] = useState([])
-
-  useEffect(() => {
-    getMovies().then(setMovies)
-  }, [])
-
+function Home() {
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Movies</h1>
-
-      <div className="space-y-2">
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">Movie Database</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {movies.map(movie => (
-          <Link
-            key={movie.movie_id}
-            to={`/movies/${movie.movie_id}`}
-            className="block p-3 border rounded hover:bg-gray-100"
-          >
-            <div className="font-semibold">{movie.title}</div>
-            <div className="text-sm text-gray-600">
-              {new Date(movie.release_date).getFullYear()}
-            </div>
-          </Link>
+          <MovieCard key={movie.id} movie={movie} />
         ))}
       </div>
     </div>
-  )
+  );
 }
+
+export default Home;
