@@ -47,21 +47,23 @@ function Home() {
         <h1 className="text-3xl font-bold mb-8">Browse Movies</h1>
         
         {/* Filters */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            type="text"
-            placeholder="Search by title..."
-            value={filters.title}
-            onChange={(e) => handleFilterChange('title', e.target.value)}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-black dark:text-white"
-          />
-          <input
-            type="number"
-            placeholder="Year"
-            value={filters.year}
-            onChange={(e) => handleFilterChange('year', e.target.value)}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-black dark:text-white"
-          />
+        <div className="mb-6">
+          <div className="bg-gray-200 dark:bg-gray-800 rounded-xl p-3 flex gap-3 items-center shadow-sm">
+            <input
+              type="text"
+              placeholder="Search by title..."
+              value={filters.title}
+              onChange={(e) => handleFilterChange('title', e.target.value)}
+              className="flex-1 min-w-0 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-black dark:text-white transition focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+            />
+            <input
+              type="number"
+              placeholder="Year"
+              value={filters.year}
+              onChange={(e) => handleFilterChange('year', e.target.value)}
+              className="w-36 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-black dark:text-white transition focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+            />
+          </div>
         </div>
 
         {loading ? (
