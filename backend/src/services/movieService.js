@@ -6,25 +6,66 @@ const ALLOWED_ORDER = new Set(["asc", "desc"]);
 async function listMovies(filters) {
     const values = [];
     let where = "WHERE 1=1";
+    let join = "";
+    let ratingJoin = `
+    LEFT JOIN movie_links l ON l.tmdb_id = m.movie_id
+    LEFT JOIN ratings r ON r.movie_id = l.movie_lens_id
+`;
+    let groupBy = "GROUP BY m.movie_id";
+    let having = "";
 
     if (filters.year) {
         values.push(filters.year);
-        where += ` AND EXTRACT(YEAR FROM release_date) = $${values.length}`;
+        where += ` AND EXTRACT(YEAR FROM m.release_date) = $${values.length}`;
     }
 
     if (filters.title) {
         values.push(`%${filters.title}%`);
-        where += ` AND title ILIKE $${values.length}`;  
+        where += ` AND m.title ILIKE $${values.length}`;  
     }
 
     if (filters.minBudget != null) {
         values.push(filters.minBudget);
-        where += ` AND budget::BIGINT >= $${values.length}`;
+        where += ` AND m.budget >= $${values.length}`;
     }
 
     if (filters.maxBudget != null) {
         values.push(filters.maxBudget);
-        where += ` AND budget::BIGINT <= $${values.length}`;
+        where += ` AND m.budget <= $${values.length}`;
+    }
+
+    if (filters.genres && filters.genres.length > 0) {
+        join += `
+            JOIN movie_genres mg ON mg.movie_id = m.movie_id`;
+
+            const genrePlaceholders = filters.genres
+                        .map((_, i) => `$${values.length + i + 1}`).join(",");
+
+                        values.push(...filters.genres);
+
+                        where += ` AND mg.genre_id IN (${genrePlaceholders})`;
+                        groupBy = "GROUP BY m.movie_id";
+                        having = `HAVING COUNT(DISTINCT mg.genre_id) = ${filters.genres.length}`;
+    }
+
+    if (filters.actorId) {
+        join += `
+            JOIN movie_actors ma ON ma.movie_id = m.movie_id`;
+
+        values.push(filters.actorId);
+        where += ` AND ma.actor_id = $${values.length}`;
+        groupBy = "GROUP BY m.movie_id";
+    }
+
+    if (filters.actor && !filters.actorId)
+{
+        join += `
+            JOIN movie_actors ma ON ma.movie_id = m.movie_id
+            JOIN actors a ON a.actor_id = ma.actor_id`;
+
+            values.push(`%${filters.actor}%`);
+            where += ` AND a.name ILIKE $${values.length}`;
+            groupBy = "GROUP BY m.movie_id";
     }
 
     const sortBy = ALLOWED_SORT.has(filters.sortBy) ? filters.sortBy : "release_date";
@@ -37,7 +78,8 @@ async function listMovies(filters) {
 
     // total count for pagination 
 
-    const countQuery = `SELECT COUNT(*)::INT AS total FROM movies ${where};`;
+    const countQuery = `SELECT COUNT(*)::INT AS total FROM ( SELECT m.movie_id FROM movies m ${join} ${ratingJoin} ${where} ${groupBy} ${having}) sub;`;
+
     const countRes = await pool.query(countQuery, values);
     const total = countRes.rows[0].total;
 
@@ -46,10 +88,24 @@ async function listMovies(filters) {
     values.push (limit, offset);
 
     const dataQuery = `
-        SELECT movie_id, title, release_date, runtime, budget, revenue
-        FROM movies
+        SELECT 
+          m.movie_id,
+          m.title,
+          m.release_date,
+          m.runtime,
+          m.budget,
+          m.revenue,
+          COALESCE(AVG(r.score), 0)::NUMERIC(3,1) AS avg_rating,
+          COUNT(r.score)::INT AS rating_count
+
+
+        FROM movies m
+        ${join}
+        ${ratingJoin}
         ${where}
-        ORDER BY ${sortBy} ${order} NULLS LAST
+        ${groupBy}
+        ${having}
+        ORDER BY m.${sortBy} ${order} NULLS LAST
         LIMIT $${values.length -1} OFFSET $${values.length}
     `;
 
@@ -70,16 +126,21 @@ async function getMovieById(id) {
     // 1) Get base movie info
 
     const movieQuery = `
-         SELECT 
-            movie_id,
-            title,
-            overview,
-            release_date,
-            runtime,
-            budget,
-            revenue
-            FROM movies
-            WHERE movie_id = $1
+        SELECT 
+            m.movie_id,
+            m.title,
+            m.overview,
+            m.release_date,
+            m.runtime,
+            m.budget,
+            m.revenue,
+            COALESCE(ROUND(AVG(r.score)::numeric,1), 0) AS avg_rating,
+            COUNT(r.score) AS rating_count
+        FROM movies m
+        LEFT JOIN movie_links l ON l.tmdb_id = m.movie_id
+        LEFT JOIN ratings r ON r.movie_id = l.movie_lens_id
+        WHERE m.movie_id = $1
+        GROUP BY m.movie_id;
             `;
 
             const movieRes = await pool.query(movieQuery, [id]);
@@ -131,51 +192,5 @@ async function getMovieById(id) {
                         directors: directorsRes.rows,
                     };
                     }
-    
-    /* This quey returns One Row, but with JSON arrays for genres.actors,directors
-    
-    const query = `
-        SELECT 
-            m.movie_id, m.title, m.overview, m.release_date, m.runtime, m.budget, m.revenue,
-            
-            -- Genres array
-            COALESCE(
-                json_agg(DISTINCT jsonb_build_object(
-                    'genre_id', g.genre_id,
-                    'name', g.name
-)) FILTER (WHERE g.genre_id IS NOT NULL),
- '[]'
-) AS actors,
- 
--- Directors array
-COALESCE(
-    json_agg(DISTINCT jsonb_build_object(
-        'director_id', d.director_id,
-        'name', d.name
-)) FILTER (WHERE d.director_id IS NOT NULL),
- '[]'
-) AS directors
- 
-    FROM movies m
-    
-    -- Genre join chain (movies -> movie_genres -> genres)
-    LEFT JOIN movie_genres mg ON mg.movie_id = m.movie_id
-    LEFT JOIN genres g ON g.genre_id = mg.genre_id
 
-    -- Actor join chain (movies -> movie_actors -> actors)
-    LEFT JOIN movie_actors ma ON ma.movie_id = m.movie_id
-    LEFT JOIN directors d ON d.director_id = m.movie_id
-
-    WHERE m.movie_id = $1
-    GROUP BY m.movie_id
-    `;
-
-    const result = await pool.query(query, [id]);
-    
-
-//if no rows, movie doesnt ecist 
-if (result.rows.length === 0) return null;
-  
-    return result.rows[0];
-*/
 module.exports = { listMovies, getMovieById};
