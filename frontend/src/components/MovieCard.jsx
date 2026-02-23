@@ -27,7 +27,7 @@ function MovieCard({ movie }) {
 
   return (
     <Link to={`/movies/${movie.id}`} className="block">
-      <div className="bg-gray-200 dark:bg-gray-800 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
+    <div className="bg-gray-200 dark:bg-gray-800 rounded-lg p-5 shadow-md transform transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] cursor-pointer">
         <div className="w-full h-64 bg-gray-700 rounded-md mb-4 flex items-center justify-center relative overflow-hidden">
           {isLoading ? (
             <div className="text-gray-400">Loading...</div>
@@ -43,7 +43,6 @@ function MovieCard({ movie }) {
                 className="relative w-full h-full object-contain rounded-md"
                 onError={(e) => {
                   e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
                 }}
               />
             </>
@@ -54,9 +53,15 @@ function MovieCard({ movie }) {
             </div>
           )}
         </div>
-        <h3 className="text-lg font-semibold mb-2 text-black dark:text-white">{movie.title}</h3>
-        <p className="text-gray-700 dark:text-gray-300">Year: {year}</p>
-        {movie.rating && <p className="text-gray-700 dark:text-gray-300">Rating: {movie.rating}/10</p>}
+        <h3 className="text-lg font-semibold mb-1 text-black dark:text-white leading-tight line-clamp-2">{movie.title}</h3>
+        <p className="text-gray-400 dark:text-gray-400 text-sm">Year: {year}</p>
+        {movie.rating ? (
+          <div className="mt-1">
+            <span className="bg-yellow-500 text-black px-2 py-1 rounded text-sm font-medium dark:bg-yellow-400 dark:text-black">
+              {movie.rating}/10
+            </span>
+          </div>
+        ) : null}
       </div>
     </Link>
   );
