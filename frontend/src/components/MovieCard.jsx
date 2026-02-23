@@ -28,19 +28,25 @@ function MovieCard({ movie }) {
   return (
     <Link to={`/movies/${movie.id}`} className="block">
       <div className="bg-gray-200 dark:bg-gray-800 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow cursor-pointer">
-        <div className="w-full h-64 bg-gray-700 rounded-md mb-4 flex items-center justify-center">
+        <div className="w-full h-64 bg-gray-700 rounded-md mb-4 flex items-center justify-center relative overflow-hidden">
           {isLoading ? (
             <div className="text-gray-400">Loading...</div>
           ) : posterUrl ? (
-            <img
-              src={posterUrl}
-              alt={`${movie.title} poster`}
-              className="w-full h-full object-cover rounded-md"
-              onError={(e) => {
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'flex';
-              }}
-            />
+            <>
+              <div
+                className="absolute inset-0 bg-cover bg-center filter blur-sm scale-110"
+                style={{ backgroundImage: `url(${posterUrl})` }}
+              />
+              <img
+                src={posterUrl}
+                alt={`${movie.title} poster`}
+                className="relative w-full h-full object-contain rounded-md"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+            </>
           ) : (
             <div className="text-gray-400 text-center">
               <div className="text-4xl mb-2">🎬</div>
