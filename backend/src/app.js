@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const pool = require("./db");
+const ratingRoutes = require("./routes/rating");
 
 const moviesRoutes = require("./routes/movies");
 
@@ -8,6 +9,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/ratings", ratingRoutes);  
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "Backend is running" });
