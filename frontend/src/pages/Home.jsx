@@ -44,7 +44,7 @@ function Home() {
     <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Movie Database</h1>
+        <h1 className="text-3xl font-bold mb-8">Browse Movies</h1>
         
         {/* Filters */}
         <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
