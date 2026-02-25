@@ -1,6 +1,6 @@
 const pool = require("../db");
 
-const ALLOWED_SORT = new Set(["release_date", "budget", "revenue", "runtime", "title"]);
+const ALLOWED_SORT = new Set(["release_date", "budget", "revenue", "runtime", "title", "avg_rating", "rating_count"]);
 const ALLOWED_ORDER = new Set(["asc", "desc"]);
 
 async function listMovies(filters) {
@@ -67,7 +67,24 @@ async function listMovies(filters) {
             where += ` AND a.name ILIKE $${values.length}`;
             groupBy = "GROUP BY m.movie_id";
     }
+    
+    if (filters.minRating != null) {
+        values.push(filters.minRating);
+        if (having) {
+            having += ` AND COALESCE(AVG(r.score), 0) >= $${values.length}`;     
+        } else {
+            having = `HAVING COALESCE(AVG(r.score), 0) >= $${values.length}`;
+        }
+    }
 
+    if (filters.maxRating != null) {
+        values.push(filters.maxRating);
+        if (having) {
+            having += ` AND AVG(r.score) <= $${values.length}`;     
+        } else {
+            having = `HAVING COALESCE(AVG(r.score), 0) <= $${values.length}`;
+        }
+    }
     const sortBy = ALLOWED_SORT.has(filters.sortBy) ? filters.sortBy : "release_date";
     const order = ALLOWED_ORDER.has(String(filters.order).toLowerCase()) ? String(filters.order).toUpperCase() : "DESC";
 
@@ -105,7 +122,7 @@ async function listMovies(filters) {
         ${where}
         ${groupBy}
         ${having}
-        ORDER BY m.${sortBy} ${order} NULLS LAST
+        ORDER BY ${sortBy === "avg_rating" ? "avg_rating" : `m.${sortBy}`} ${order} NULLS LAST
         LIMIT $${values.length -1} OFFSET $${values.length}
     `;
 
@@ -120,6 +137,7 @@ async function listMovies(filters) {
     };
 
 }
+
 
 async function getMovieById(id) {
 
