@@ -8,6 +8,7 @@ function Home() {
   const [filters, setFilters] = useState({
     title: '',
     year: '',
+    sortBy: "newest"
   });
   const [loading, setLoading] = useState(true);
 
@@ -28,12 +29,29 @@ function Home() {
   }, []);
 
   const filteredMovies = useMemo(() => {
-    return allMovies.filter(movie => {
+    let result = allMovies.filter(movie => {
       if (filters.title && !movie.title.toLowerCase().includes(filters.title.toLowerCase())) return false;
       if (filters.year && movie.year != filters.year) return false;
       // Budget not in mocks, skip
       return true;
     });
+
+    /* Dropdown Sorting */
+
+    if (filters.sortBy === "newest") {
+      result.sort((a, b) => b.year - a.year);
+  }
+
+    if (filters.sortBy === "oldest") {
+      result.sort((a, b) => a.year - b.year);
+  }
+
+    if (filters.sortBy === "az") {
+      result.sort((a, b) => a.title.localeCompare(b.title));
+  }
+
+  return result;
+
   }, [allMovies, filters]);
 
   const handleFilterChange = (key, value) => {
@@ -63,6 +81,17 @@ function Home() {
               onChange={(e) => handleFilterChange('year', e.target.value)}
               className="w-36 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-black dark:text-white transition focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
             />
+
+            {/* Dropdown */}
+            <select
+              value={filters.sortBy}
+              onChange={(e) => handleFilterChange("sortBy", e.target.value)}
+              className="w-40 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-black dark:text-white transition focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+            >
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="az">A-Z</option>
+            </select>
           </div>
         </div>
 
