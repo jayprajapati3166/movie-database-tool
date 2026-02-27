@@ -21,7 +21,7 @@ async function listMovies(filters) {
 
     if (filters.title) {
         values.push(`%${filters.title}%`);
-        where += ` AND m.title ILIKE $${values.length}`;  
+        where += ` AND m.title ILIKE $${values.length}`;
     }
 
     if (filters.minBudget != null) {
