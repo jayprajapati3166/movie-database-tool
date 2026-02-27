@@ -6,7 +6,9 @@ function MovieCard({ movie }) {
   const [posterUrl, setPosterUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const movieId = movie.movie_id ?? movie.id;
   const year = movie.release_date ? new Date(movie.release_date).getFullYear() : movie.year;
+  const rating = movie.avg_rating ?? movie.rating;
 
   useEffect(() => {
     const loadPoster = async () => {
@@ -26,8 +28,8 @@ function MovieCard({ movie }) {
   }, [movie.title, year]);
 
   return (
-    <Link to={`/movies/${movie.id}`} className="block">
-    <div className="bg-gray-200 dark:bg-gray-800 rounded-lg p-5 shadow-md transform transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] cursor-pointer">
+    <Link to={`/movies/${movieId}`} className="block">
+      <div className="bg-gray-200 dark:bg-gray-800 rounded-lg p-5 shadow-md transform transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] cursor-pointer">
         <div className="w-full h-64 bg-gray-700 rounded-md mb-4 flex items-center justify-center relative overflow-hidden">
           {isLoading ? (
             <div className="text-gray-400">Loading...</div>
@@ -48,17 +50,16 @@ function MovieCard({ movie }) {
             </>
           ) : (
             <div className="text-gray-400 text-center">
-              <div className="text-4xl mb-2">🎬</div>
               <div className="text-sm">No Image</div>
             </div>
           )}
         </div>
         <h3 className="text-lg font-semibold mb-1 text-black dark:text-white leading-tight line-clamp-2">{movie.title}</h3>
         <p className="text-gray-400 dark:text-gray-400 text-sm">Year: {year}</p>
-        {movie.rating ? (
+        {rating != null ? (
           <div className="mt-1">
             <span className="bg-yellow-500 text-black px-2 py-1 rounded text-sm font-medium dark:bg-yellow-400 dark:text-black">
-              {movie.rating}/10
+              {rating}/10
             </span>
           </div>
         ) : null}

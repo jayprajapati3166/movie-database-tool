@@ -1,43 +1,46 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { getMovies } from '../features/movies/api';
 import MovieCard from '../components/MovieCard';
 import Navbar from '../components/Navbar';
 
 function Home() {
-  const [allMovies, setAllMovies] = useState([]);
+  const [movies, setMovies] = useState([]);
   const [filters, setFilters] = useState({
     title: '',
     year: '',
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchMovies = async () => {
+    const loadMovies = async () => {
       setLoading(true);
+      setError('');
+
       try {
-        const data = await getMovies();
-        setAllMovies(data);
-      } catch (error) {
-        console.error('Failed to fetch movies:', error);
+        const result = await getMovies({
+          title: filters.title,
+          year: filters.year,
+          page: 1,
+          limit: 20,
+          sortBy: 'release_date',
+          order: 'desc',
+        });
+
+        setMovies(Array.isArray(result.data) ? result.data : []);
+      } catch (err) {
+        console.error('Failed to fetch movies:', err);
+        setError('Failed to fetch movies from backend.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMovies();
-  }, []);
-
-  const filteredMovies = useMemo(() => {
-    return allMovies.filter(movie => {
-      if (filters.title && !movie.title.toLowerCase().includes(filters.title.toLowerCase())) return false;
-      if (filters.year && movie.year != filters.year) return false;
-      // Budget not in mocks, skip
-      return true;
-    });
-  }, [allMovies, filters]);
+    loadMovies();
+  }, [filters.title, filters.year]);
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   return (
@@ -45,8 +48,7 @@ function Home() {
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Browse Movies</h1>
-        
-        {/* Filters */}
+
         <div className="mb-6">
           <div className="bg-gray-200 dark:bg-gray-800 rounded-xl p-3 flex gap-3 items-center shadow-sm">
             <input
@@ -68,10 +70,12 @@ function Home() {
 
         {loading ? (
           <div className="text-center">Loading...</div>
+        ) : error ? (
+          <div className="text-center text-red-500">{error}</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredMovies.map(movie => (
-              <MovieCard key={movie.id} movie={movie} />
+            {movies.map((movie) => (
+              <MovieCard key={movie.movie_id} movie={movie} />
             ))}
           </div>
         )}
