@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { getMovies } from '../features/movies/api';
 import MovieCard from '../components/MovieCard';
 import Navbar from '../components/Navbar';
@@ -37,11 +37,11 @@ function Home() {
       }
     };
 
-    fetchMovies();
+    loadMovies();
   }, []);
 
   const filteredMovies = useMemo(() => {
-    let result = allMovies.filter(movie => {
+    let result = movies.filter(movie => {
       if (filters.title && !movie.title.toLowerCase().includes(filters.title.toLowerCase())) return false;
       if (filters.year && movie.year != filters.year) return false;
       // Budget not in mocks, skip
@@ -64,7 +64,7 @@ function Home() {
 
   return result;
 
-  }, [allMovies, filters]);
+  }, [movies, filters]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -107,28 +107,19 @@ function Home() {
           </div>
         </div>
 
-        {loading ? (
+          {loading ? (
           <div className="text-center">Loading...</div>
         ) : error ? (
           <div className="text-center text-red-500">{error}</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {movies.map((movie) => (
-              <MovieCard key={movie.movie_id} movie={movie} />
+            {filteredMovies.map((movie) => (
+              <MovieCard key={movie.movie_id || movie.id} movie={movie} />
             ))}
           </div>
-
-        ) : (
-
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-    {filteredMovies.map(movie => (
-      <MovieCard key={movie.id} movie={movie} />
-    ))}
-  </div>
-
-)}
+        )}
       </div>
-    </div>
+    </div> 
   );
 }
 
