@@ -1,25 +1,37 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { getMovies } from '../features/movies/api';
 import MovieCard from '../components/MovieCard';
 import Navbar from '../components/Navbar';
 
 function Home() {
-  const [allMovies, setAllMovies] = useState([]);
+  const [movies, setMovies] = useState([]);
   const [filters, setFilters] = useState({
     title: '',
     year: '',
     sortBy: "newest"
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchMovies = async () => {
+    const loadMovies = async () => {
       setLoading(true);
+      setError('');
+
       try {
-        const data = await getMovies();
-        setAllMovies(data);
-      } catch (error) {
-        console.error('Failed to fetch movies:', error);
+        const result = await getMovies({
+          title: filters.title,
+          year: filters.year,
+          page: 1,
+          limit: 20,
+          sortBy: 'release_date',
+          order: 'desc',
+        });
+
+        setMovies(Array.isArray(result.data) ? result.data : []);
+      } catch (err) {
+        console.error('Failed to fetch movies:', err);
+        setError('Failed to fetch movies from backend.');
       } finally {
         setLoading(false);
       }
@@ -55,7 +67,7 @@ function Home() {
   }, [allMovies, filters]);
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters((prev) => ({ ...prev, [key]: value }));
   };
   /* Prevent page loading with error message on start up */
   const hasActiveFilters = filters.title || filters.year;
@@ -65,8 +77,6 @@ function Home() {
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Browse Movies</h1>
-        
-        {/* Filter logic for displaying newest release date, oldest release date or alphabetically */}
         <div className="mb-6">
           <div className="bg-gray-200 dark:bg-gray-800 rounded-xl p-3 flex gap-3 items-center shadow-sm">
             <input
@@ -98,16 +108,14 @@ function Home() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12">Loading...</div>
-        
-        /* If no movie is found with the search parameters an error message is displayed */
-        ) : filteredMovies.length === 0 && hasActiveFilters ? (
-
-          <div className="text-center py-12">
-            <p className="text-lg font-medium">No movies found matching your search</p>
-            <p className="text-gray-500 dark:text-gray-400">
-              Please try a different title or year
-            </p>
+          <div className="text-center">Loading...</div>
+        ) : error ? (
+          <div className="text-center text-red-500">{error}</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {movies.map((movie) => (
+              <MovieCard key={movie.movie_id} movie={movie} />
+            ))}
           </div>
 
         ) : (
