@@ -42,7 +42,8 @@ function Home() {
   };
 
   return (
-
+    <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white">
+      <Navbar />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Browse Movies</h1>
         
@@ -64,6 +65,7 @@ function Home() {
               className="w-36 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-black dark:text-white transition focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
             />
           </div>
+        </div>
         
 
         {loading ? (

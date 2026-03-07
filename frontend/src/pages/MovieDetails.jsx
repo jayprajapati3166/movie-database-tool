@@ -51,6 +51,8 @@ export default function MovieDetails() {
   if (!movie) return <div className="p-6">Loading...</div>
 
   return (
+    <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white">
+      <Navbar />
       <div className="p-6">
         <h1 className="text-4xl font-bold mb-6 m1-40">{movie.title}</h1>
         
@@ -79,6 +81,7 @@ export default function MovieDetails() {
           <p className="text-lg leading-relaxed text-gray-800 dark:text-gray-200">{overview}</p>
         </section>
       </div>
+    </div>
     
   )
 }
