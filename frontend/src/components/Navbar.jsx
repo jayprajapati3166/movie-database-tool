@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
+import { Link, NavLink } from 'react-router-dom';
 import { getDataSource, setDataSource } from '@/features/movies/api';
 
 function Navbar() {
@@ -30,11 +31,20 @@ function Navbar() {
   return (
     <nav className="bg-gray-800 dark:bg-gray-900 p-4">
       <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-xl font-bold text-white">Movie Database</h1>
+        <Link to="/" className="text-xl font-bold text-white">Movie Database</Link>
         <div className="flex items-center space-x-4">
           <ul className="flex space-x-4">
-            <li><a href="#" className="text-white hover:text-gray-300">Home</a></li>
-            <li><a href="#" className="text-white hover:text-gray-300">Movies</a></li>
+            <li>
+              <NavLink
+                to="/"
+                className={({ isActive }) =>
+                  isActive ? 'text-white font-semibold' : 'text-white hover:text-gray-300'
+                }
+                end
+              >
+                Home
+              </NavLink>
+            </li>
           </ul>
           <select
             value={dataSource}

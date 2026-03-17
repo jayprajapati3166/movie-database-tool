@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getMovies, onDataSourceChanged } from '../features/movies/api';
 import MovieCard from '../components/MovieCard';
-import Navbar from '../components/Navbar';
 
 const SORT_OPTIONS = {
   newest: { sortBy: 'release_date', order: 'desc' },
@@ -59,10 +58,8 @@ function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white">
-      <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Browse Movies</h1>
+    <div>
+      <h1 className="text-3xl font-bold mb-8">Browse Movies</h1>
 
         <div className="mb-6">
           <div className="bg-gray-200 dark:bg-gray-800 rounded-xl p-3 flex gap-3 items-center shadow-sm">
@@ -102,7 +99,6 @@ function Home() {
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 }

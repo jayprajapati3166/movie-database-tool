@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { getMovie, onDataSourceChanged } from "@/features/movies/api"
-import Navbar from '../components/Navbar';
 import { fetchMoviePoster, fetchMovieOverview } from "@/lib/tmdbService";
 
 export default function MovieDetails() {
@@ -75,10 +74,8 @@ export default function MovieDetails() {
   if (!movie) return <div className="p-6">Movie not found.</div>;
 
   return (
-    <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white">
-      <Navbar />
-      <div className="p-6">
-        <h1 className="text-4xl font-bold mb-6 m1-40">{movie.title}</h1>
+    <div className="p-2 md:p-6">
+      <h1 className="text-4xl font-bold mb-6">{movie.title}</h1>
         
         <section className="p-6 flex flex-col md:flex-row gap-8 items-start">
           {posterUrl && (
@@ -105,8 +102,6 @@ export default function MovieDetails() {
           <p className="text-lg leading-relaxed text-gray-800 dark:text-gray-200">{overview}</p>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">Ratings: {movie.rating_count ?? "N/A"} votes</p>
         </section>
-      </div>
     </div>
-    
   )
 }
