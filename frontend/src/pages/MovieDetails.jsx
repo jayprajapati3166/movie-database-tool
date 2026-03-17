@@ -16,6 +16,20 @@ export default function MovieDetails() {
   const [budget, setBudget] = useState(null)
   const [revenue, setRevenue] = useState(null)
 
+  const formatCurrency = (value) => {
+    const amount = Number(value)
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return "N/A"
+    }
+
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(amount)
+  }
+
   useEffect(() => {
     const unsubscribe = onDataSourceChanged(() => {
       setSourceTick((value) => value + 1);
@@ -69,39 +83,61 @@ export default function MovieDetails() {
     }
   }, [movie])
 
-  if (loading) return <div className="p-6">Loading...</div>;
-  if (error) return <div className="p-6 text-red-500">{error}</div>;
-  if (!movie) return <div className="p-6">Movie not found.</div>;
+  if (loading) return <div className="surface-panel p-8 text-center text-muted-foreground">Loading...</div>;
+  if (error) return <div className="surface-panel p-8 text-center text-destructive">{error}</div>;
+  if (!movie) return <div className="surface-panel p-8 text-center text-muted-foreground">Movie not found.</div>;
+
+  const releaseYear = movie.release_date
+    ? new Date(movie.release_date).getFullYear()
+    : (movie.year ?? "N/A")
+  const displayRating = rating ?? movie.avg_rating ?? "N/A"
+
+  const metadata = [
+    { label: "Rating", value: `${displayRating} / 10` },
+    { label: "Release", value: releaseYear },
+    { label: "Runtime", value: runtime ? `${runtime} mins` : "N/A" },
+    { label: "Budget", value: formatCurrency(budget ?? movie.budget) },
+    { label: "Revenue", value: formatCurrency(revenue ?? movie.revenue) },
+  ]
 
   return (
-    <div className="p-2 md:p-6">
-      <h1 className="text-4xl font-bold mb-6">{movie.title}</h1>
-        
-        <section className="p-6 flex flex-col md:flex-row gap-8 items-start">
-          {posterUrl && (
-            <img 
-              src={posterUrl} 
-              alt={`${movie.title} poster`} 
-              className="w-64 rounded-lg shadow-md flex-shrink-0" 
-            />
-          )}
-          
-          <div className="space-y-3">
-            <p className="text-lg font-medium text-yellow-500">
-              Rating: <span className="font-normal text-black dark:text-white">{rating} / 10</span>
-            </p>
-            <p className="text-lg font-medium">Release: <span className="font-normal">{movie.year}</span></p>
-            <p className="text-lg font-medium">Runtime: <span className="font-normal">{runtime} mins</span></p>
-            <p className="text-lg font-medium">Budget: <span className="font-normal">${budget}</span></p>
-            <p className="text-lg font-medium">Revenue: <span className="font-normal">${revenue}</span></p>
-          </div>
-        </section>
+    <div className="space-y-6 md:space-y-8">
+      <header className="space-y-2">
+        <h1 className="text-3xl font-semibold md:text-4xl">{movie.title}</h1>
+      </header>
 
-        <section className="p-6 border-t dark:border-gray-700">
-          <h2 className="text-3xl font-bold mb-4">Overview</h2>
-          <p className="text-lg leading-relaxed text-gray-800 dark:text-gray-200">{overview}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">Ratings: {movie.rating_count ?? "N/A"} votes</p>
-        </section>
+      <section className="surface-panel p-4 sm:p-6">
+        <div className="flex flex-col gap-6 md:flex-row">
+          <div className="mx-auto w-full max-w-xs shrink-0 md:mx-0">
+            {posterUrl ? (
+              <img
+                src={posterUrl}
+                alt={`${movie.title} poster`}
+                className="w-full rounded-lg border object-cover shadow-sm"
+              />
+            ) : (
+              <div className="flex aspect-[2/3] w-full items-center justify-center rounded-lg border bg-muted text-sm text-muted-foreground">
+                No poster available
+              </div>
+            )}
+          </div>
+
+          <dl className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+            {metadata.map((item) => (
+              <div key={item.label} className="rounded-lg border bg-background p-3 sm:p-4">
+                <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{item.label}</dt>
+                <dd className="mt-1 text-base font-medium text-foreground">{item.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+
+      <section className="surface-panel p-4 sm:p-6">
+        <h2 className="text-2xl font-semibold md:text-3xl">Overview</h2>
+        <p className="mt-3 text-sm text-muted-foreground md:text-base">{overview || "No description available."}</p>
+        <p className="mt-4 text-sm text-muted-foreground">Ratings: {movie.rating_count ?? "N/A"} votes</p>
+      </section>
     </div>
   )
 }

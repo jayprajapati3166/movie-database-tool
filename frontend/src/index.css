@@ -117,10 +117,37 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100%;
+  }
+
   body {
-    @apply bg-background text-foreground;
-    }
+    @apply bg-background text-foreground antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply tracking-tight;
+  }
+
+  p {
+    @apply leading-relaxed;
+  }
+}
+
+@layer components {
+  .page-shell {
+    @apply mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 md:py-8;
+  }
+
+  .surface-panel {
+    @apply rounded-xl border bg-card text-card-foreground shadow-sm;
+  }
 }
 
 /* Fallback line-clamp utility if Tailwind line-clamp plugin is not enabled */

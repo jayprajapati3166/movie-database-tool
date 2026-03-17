@@ -58,47 +58,51 @@ function Home() {
   };
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8">Browse Movies</h1>
+    <div className="space-y-6 md:space-y-8">
+      <header className="space-y-2">
+        <h1 className="text-3xl font-semibold md:text-4xl">Browse Movies</h1>
+        <p className="text-sm text-muted-foreground md:text-base">
+          Search by title and sort results by release date or alphabetically.
+        </p>
+      </header>
 
-        <div className="mb-6">
-          <div className="bg-gray-200 dark:bg-gray-800 rounded-xl p-3 flex gap-3 items-center shadow-sm">
-            <input
-              type="text"
-              placeholder="Search by title..."
-              value={filters.title}
-              onChange={(e) => handleFilterChange('title', e.target.value)}
-              className="flex-1 min-w-0 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-black dark:text-white transition focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-            />
-            <select
-              value={filters.sort}
-              onChange={(e) => handleFilterChange('sort', e.target.value)}
-              className="w-40 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-black dark:text-white transition focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-              aria-label="Sort movies"
-            >
-              <option value="newest">Newest</option>
-              <option value="oldest">Oldest</option>
-              <option value="az">A-Z</option>
-            </select>
-          </div>
+      <section className="surface-panel p-4 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <input
+            type="text"
+            placeholder="Search by title..."
+            value={filters.title}
+            onChange={(e) => handleFilterChange('title', e.target.value)}
+            className="h-11 w-full rounded-lg border bg-background px-4 text-sm text-foreground transition-colors placeholder:text-muted-foreground hover:border-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+          <select
+            value={filters.sort}
+            onChange={(e) => handleFilterChange('sort', e.target.value)}
+            className="h-11 w-full rounded-lg border bg-background px-4 text-sm text-foreground transition-colors hover:border-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-44"
+            aria-label="Sort movies"
+          >
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="az">A-Z</option>
+          </select>
         </div>
-        
+      </section>
 
-        {loading ? (
-          <div className="text-center">Loading...</div>
-        ) : error ? (
-          <div className="text-center text-red-500">{error}</div>
-        ) : movies.length === 0 ? (
-          <div className="text-center text-gray-600 dark:text-gray-300">
-            No movies found. Try a different search.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {movies.map((movie) => (
-              <MovieCard key={movie.movie_id ?? movie.id} movie={movie} />
-            ))}
-          </div>
-        )}
+      {loading ? (
+        <div className="surface-panel p-10 text-center text-muted-foreground">Loading...</div>
+      ) : error ? (
+        <div className="surface-panel p-10 text-center text-destructive">{error}</div>
+      ) : movies.length === 0 ? (
+        <div className="surface-panel p-10 text-center text-muted-foreground">
+          No movies found. Try a different search.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-3 lg:gap-6 xl:grid-cols-4">
+          {movies.map((movie) => (
+            <MovieCard key={movie.movie_id ?? movie.id} movie={movie} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

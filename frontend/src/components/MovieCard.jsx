@@ -13,10 +13,12 @@ function MovieCard({ movie }) {
   useEffect(() => {
     const loadPoster = async () => {
       setIsLoading(true);
+      setPosterUrl(null);
+
       try {
         const url = await fetchMoviePoster(movie.title, year);
         setPosterUrl(url);
-      } catch (error) {
+      } catch {
         console.error('Failed to load poster for:', movie.title);
         setPosterUrl(null);
       } finally {
@@ -30,44 +32,44 @@ function MovieCard({ movie }) {
   return (
     <Link
       to={`/movies/${movieId}`}
-      className="block rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+      className="group block h-full rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       aria-label={`Open details for ${movie.title}`}
     >
-      <div className="bg-gray-200 dark:bg-gray-800 rounded-lg p-5 shadow-md transform transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] cursor-pointer">
-        <div className="w-full h-64 bg-gray-700 rounded-md mb-4 flex items-center justify-center relative overflow-hidden">
+      <article className="surface-panel h-full p-4 transition-all duration-200 group-hover:-translate-y-1 group-hover:border-foreground/20 group-hover:shadow-md md:p-5">
+        <div className="relative mb-4 flex aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-lg bg-muted">
           {isLoading ? (
-            <div className="text-gray-400">Loading...</div>
+            <div className="text-sm text-muted-foreground">Loading...</div>
           ) : posterUrl ? (
             <>
               <div
-                className="absolute inset-0 bg-cover bg-center filter blur-sm scale-110"
+                className="absolute inset-0 scale-110 bg-cover bg-center blur-sm"
                 style={{ backgroundImage: `url(${posterUrl})` }}
               />
               <img
                 src={posterUrl}
                 alt={`${movie.title} poster`}
-                className="relative w-full h-full object-contain rounded-md"
+                className="relative h-full w-full rounded-lg object-contain transition-transform duration-300 group-hover:scale-105"
                 onError={(e) => {
                   e.target.style.display = 'none';
                 }}
               />
             </>
           ) : (
-            <div className="text-gray-400 text-center">
+            <div className="text-center text-muted-foreground">
               <div className="text-sm">No Image</div>
             </div>
           )}
         </div>
-        <h3 className="text-lg font-semibold mb-1 text-black dark:text-white leading-tight line-clamp-2">{movie.title}</h3>
-        <p className="text-gray-400 dark:text-gray-400 text-sm">Year: {year}</p>
-        {rating != null ? (
-          <div className="mt-1">
-            <span className="bg-yellow-500 text-black px-2 py-1 rounded text-sm font-medium dark:bg-yellow-400 dark:text-black">
+        <h3 className="line-clamp-2 text-base font-semibold leading-tight text-card-foreground md:text-lg">{movie.title}</h3>
+        <div className="mt-3 flex items-center justify-between gap-3 text-sm text-muted-foreground">
+          <span>Year: {year ?? 'N/A'}</span>
+          {rating != null ? (
+            <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-accent-foreground">
               {rating}/10
             </span>
-          </div>
-        ) : null}
-      </div>
+          ) : null}
+        </div>
+      </article>
     </Link>
   );
 }

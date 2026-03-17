@@ -22,23 +22,32 @@ function Navbar() {
     }
   }, [isDark]);
 
-  const toggleTheme = () => setIsDark(!isDark);
+  const toggleTheme = () => setIsDark((value) => !value);
   const handleDataSourceChange = (event) => {
     const nextSource = setDataSource(event.target.value);
     setDataSourceState(nextSource);
   };
 
   return (
-    <nav className="bg-gray-800 dark:bg-gray-900 p-4">
-      <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="text-xl font-bold text-white">Movie Database</Link>
-        <div className="flex items-center space-x-4">
-          <ul className="flex space-x-4">
+    <nav className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
+        <Link
+          to="/"
+          className="text-lg font-semibold tracking-tight text-foreground transition-colors hover:text-primary sm:text-xl"
+        >
+          Movie Database
+        </Link>
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <ul className="flex items-center gap-2 sm:gap-3">
             <li>
               <NavLink
                 to="/"
                 className={({ isActive }) =>
-                  isActive ? 'text-white font-semibold' : 'text-white hover:text-gray-300'
+                  `rounded-md px-2 py-1 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-accent text-accent-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`
                 }
                 end
               >
@@ -49,7 +58,7 @@ function Navbar() {
           <select
             value={dataSource}
             onChange={handleDataSourceChange}
-            className="px-2 py-1 rounded-md bg-gray-700 text-white border border-gray-600 focus:outline-none"
+            className="h-9 rounded-md border bg-background px-3 text-sm text-foreground shadow-sm transition-colors hover:border-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             aria-label="Data source"
           >
             <option value="auto">Auto</option>
@@ -57,8 +66,10 @@ function Navbar() {
             <option value="backend">Backend</option>
           </select>
           <button
+            type="button"
             onClick={toggleTheme}
-            className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md border bg-background text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </button>
