@@ -38,6 +38,22 @@ A React + Vite application for browsing a movie database with dynamic poster loa
 
 If you don't set up the TMDB API key, the app will still work but show placeholder images instead of actual movie posters.
 
+## Data Source Switching
+
+You can switch data source at runtime from the navbar dropdown:
+
+- `Auto`: tries backend first, falls back to mock data.
+- `Mock`: uses local mock data only.
+- `Backend`: uses backend only (shows an error if backend is unavailable).
+
+Optional default mode via environment variable:
+
+```bash
+VITE_DATA_SOURCE=auto
+```
+
+Valid values are `auto`, `mock`, and `backend`.
+
 ## Tech Stack
 
 - React 18
