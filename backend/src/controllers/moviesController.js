@@ -1,4 +1,4 @@
-const { listMovies, getMovieById } = require("../services/movieService");
+const { listMovies, getMovieById, listTopRatedMovies, listTrendingMovies } = require("../services/movieService");
 
 
 async function getMovies(req, res) {
@@ -94,4 +94,38 @@ async function getMovie(req, res) {
         }
 }
 
-module.exports = { getMovies, getMovieById: getMovie };
+async function getTopRatedMovies(req, res) {
+    try {
+        const { page = "1", limit = "20", minVotes = "50" } = req.query;
+
+        const result = await listTopRatedMovies({
+            page: parseInt(page, 10),
+            limit: parseInt(limit, 10),
+            minVotes: parseInt(minVotes, 10)
+        });
+
+        res.json(result);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fethch top rated movies" });
+    }
+}
+
+async function getTrendingMovies( req, res ) {
+    try {
+        const { page = "1", limit = "20", days = "30" } = req.query;
+
+        const result = await listTrendingMovies({
+            page: parseInt(page, 10),
+            limit: parseInt(limit, 10),
+            days: parseInt(days, 10)
+        });
+
+        res.json(result);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Failed to fethch trending movies" });
+    }
+}
+
+module.exports = { getMovies, getMovieById: getMovie, getTopRatedMovies, getTrendingMovies };
