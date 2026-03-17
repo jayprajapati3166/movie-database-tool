@@ -28,7 +28,11 @@ function MovieCard({ movie }) {
   }, [movie.title, year]);
 
   return (
-    <Link to={`/movies/${movieId}`} className="block">
+    <Link
+      to={`/movies/${movieId}`}
+      className="block rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+      aria-label={`Open details for ${movie.title}`}
+    >
       <div className="bg-gray-200 dark:bg-gray-800 rounded-lg p-5 shadow-md transform transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] cursor-pointer">
         <div className="w-full h-64 bg-gray-700 rounded-md mb-4 flex items-center justify-center relative overflow-hidden">
           {isLoading ? (
