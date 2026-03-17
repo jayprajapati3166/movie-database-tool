@@ -3,8 +3,10 @@ import Home from "@/pages/Home"
 import MovieDetails from "@/pages/MovieDetails"
 import NotFound from "@/pages/NotFound"
 
-export const router = createBrowserRouter([
+
+ 
+export const router = createBrowserRouter
+([
   { path: "/", element: <Home /> },
   { path: "/movies/:id", element: <MovieDetails /> },
-  { path: "*", element: <NotFound /> },
-])
+  { path: "*", element: <NotFound /> },])
