@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getMovies } from '../features/movies/api';
+import { getMovies, onDataSourceChanged } from '../features/movies/api';
 import MovieCard from '../components/MovieCard';
 import Navbar from '../components/Navbar';
 
@@ -11,6 +11,15 @@ function Home() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [sourceTick, setSourceTick] = useState(0);
+
+  useEffect(() => {
+    const unsubscribe = onDataSourceChanged(() => {
+      setSourceTick((value) => value + 1);
+    });
+
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     const loadMovies = async () => {
@@ -37,7 +46,7 @@ function Home() {
     };
 
     loadMovies();
-  }, [filters.title, filters.year]);
+  }, [filters.title, filters.year, sourceTick]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -75,7 +84,7 @@ function Home() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {movies.map((movie) => (
-              <MovieCard key={movie.movie_id} movie={movie} />
+              <MovieCard key={movie.movie_id ?? movie.id} movie={movie} />
             ))}
           </div>
         )}

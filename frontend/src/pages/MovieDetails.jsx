@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getMovie } from "@/features/movies/api";
+import { getMovie, onDataSourceChanged } from "@/features/movies/api";
 import Navbar from "../components/Navbar";
 
 export default function MovieDetails() {
@@ -8,6 +8,15 @@ export default function MovieDetails() {
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [sourceTick, setSourceTick] = useState(0);
+
+  useEffect(() => {
+    const unsubscribe = onDataSourceChanged(() => {
+      setSourceTick((value) => value + 1);
+    });
+
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     const loadMovie = async () => {
@@ -26,7 +35,7 @@ export default function MovieDetails() {
     };
 
     loadMovie();
-  }, [id]);
+  }, [id, sourceTick]);
 
   if (loading) return <div className="p-6">Loading...</div>;
   if (error) return <div className="p-6 text-red-500">{error}</div>;
