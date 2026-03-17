@@ -13,12 +13,16 @@ function Navbar() {
   });
 
   useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
+    const root = document.documentElement;
+    const theme = isDark ? 'dark' : 'light';
+
+    root.classList.toggle('dark', isDark);
+    root.style.colorScheme = theme;
+    localStorage.setItem('theme', theme);
+
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeColorMeta) {
+      themeColorMeta.setAttribute('content', isDark ? '#1b1f2a' : '#e9edf3');
     }
   }, [isDark]);
 
@@ -29,7 +33,7 @@ function Navbar() {
   };
 
   return (
-    <nav className="border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+    <nav className="border-b border-border/80 bg-card/90 shadow-sm shadow-black/[0.03] backdrop-blur supports-[backdrop-filter]:bg-card/75 dark:shadow-black/20">
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
         <Link
           to="/"
@@ -43,10 +47,10 @@ function Navbar() {
               <NavLink
                 to="/"
                 className={({ isActive }) =>
-                  `rounded-md px-2 py-1 text-sm font-medium transition-colors ${
+                  `rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-accent text-accent-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-accent/70 hover:text-foreground'
                   }`
                 }
                 end
@@ -58,7 +62,7 @@ function Navbar() {
           <select
             value={dataSource}
             onChange={handleDataSourceChange}
-            className="h-9 rounded-md border bg-background px-3 text-sm text-foreground shadow-sm transition-colors hover:border-foreground/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="h-9 rounded-md border border-border bg-background/80 px-3 text-sm text-foreground shadow-sm transition-colors hover:border-foreground/20 hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             aria-label="Data source"
           >
             <option value="auto">Auto</option>
@@ -68,10 +72,14 @@ function Navbar() {
           <button
             type="button"
             onClick={toggleTheme}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md border bg-background text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="group inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background/80 text-foreground shadow-sm transition-colors hover:border-foreground/20 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
           >
-            {isDark ? <Sun size={20} /> : <Moon size={20} />}
+            {isDark ? (
+              <Sun size={18} className="transition-transform duration-200 group-hover:rotate-12" />
+            ) : (
+              <Moon size={18} className="transition-transform duration-200 group-hover:-rotate-12" />
+            )}
           </button>
         </div>
       </div>

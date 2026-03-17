@@ -35,7 +35,7 @@ function MovieCard({ movie }) {
       className="group block h-full rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       aria-label={`Open details for ${movie.title}`}
     >
-      <article className="surface-panel h-full p-4 transition-all duration-200 group-hover:-translate-y-1 group-hover:border-foreground/20 group-hover:shadow-md md:p-5">
+      <article className="surface-panel h-full p-4 transition-all duration-200 group-hover:-translate-y-1 group-hover:border-primary/25 group-hover:shadow-md md:p-5">
         <div className="relative mb-4 flex aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-lg bg-muted">
           {isLoading ? (
             <div className="text-sm text-muted-foreground">Loading...</div>
@@ -64,7 +64,7 @@ function MovieCard({ movie }) {
         <div className="mt-3 flex items-center justify-between gap-3 text-sm text-muted-foreground">
           <span>Year: {year ?? 'N/A'}</span>
           {rating != null ? (
-            <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-accent-foreground">
+            <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
               {rating}/10
             </span>
           ) : null}

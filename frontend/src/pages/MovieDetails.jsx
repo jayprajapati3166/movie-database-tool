@@ -124,7 +124,7 @@ export default function MovieDetails() {
 
           <dl className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
             {metadata.map((item) => (
-              <div key={item.label} className="rounded-lg border bg-background p-3 sm:p-4">
+              <div key={item.label} className="rounded-lg border bg-muted/30 p-3 sm:p-4">
                 <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{item.label}</dt>
                 <dd className="mt-1 text-base font-medium text-foreground">{item.value}</dd>
               </div>
