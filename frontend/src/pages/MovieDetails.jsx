@@ -1,44 +1,67 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
-import { getMovie } from "@/features/movies/api"
+import { getMovie, onDataSourceChanged } from "@/features/movies/api"
 import Navbar from '../components/Navbar';
-import MovieCard from "@/components/MovieCard";
 import { fetchMoviePoster, fetchMovieOverview } from "@/lib/tmdbService";
 
 export default function MovieDetails() {
   const { id } = useParams()
   const [movie, setMovie] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [sourceTick, setSourceTick] = useState(0)
   const [posterUrl, setPosterUrl] = useState(null);
   const [overview, setOverview] = useState("");
   const [rating, setRating] = useState(null);
   const [runtime, setRuntime] = useState(null)
   const [budget, setBudget] = useState(null)
   const [revenue, setRevenue] = useState(null)
-  const [isLoadingPoster, setIsLoadingPoster] = useState(true);
 
   useEffect(() => {
-    getMovie(id).then(setMovie)
-  }, [id])
+    const unsubscribe = onDataSourceChanged(() => {
+      setSourceTick((value) => value + 1);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const loadMovie = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const data = await getMovie(id);
+        setMovie(data);
+      } catch (err) {
+        console.error("Failed to fetch movie:", err);
+        setError("Failed to fetch movie from backend.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMovie();
+  }, [id, sourceTick]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const url = await fetchMoviePoster(movie.title, movie.year);
-        const data = await fetchMovieOverview(movie.title, movie.year);
-        
+        const releaseYear = movie.release_date
+          ? new Date(movie.release_date).getFullYear()
+          : movie.year;
+
+        const url = await fetchMoviePoster(movie.title, releaseYear);
+        const data = await fetchMovieOverview(movie.title, releaseYear);
+
         setPosterUrl(url);
-        setOverview(data?.overview);
-        setRating(data?.rating ? Number(data.rating).toFixed(1) : "N/A");
-        setRuntime(data?.runtime);
-        setBudget(data?.budget);
-        setRevenue(data?.revenue)
-      }   
-      catch(error) 
-      {
-        console.error("Fetch failed", error)
-      }
-      finally{
-        setIsLoadingPoster(false)
+        setOverview(data?.overview ?? "No description available.");
+        setRating(data?.rating ? Number(data.rating).toFixed(1) : (movie.avg_rating ?? "N/A"));
+        setRuntime(data?.runtime ?? movie.runtime);
+        setBudget(data?.budget ?? movie.budget);
+        setRevenue(data?.revenue ?? movie.revenue);
+      } catch (fetchError) {
+        console.error("Fetch failed", fetchError)
       }
     };
 
@@ -46,9 +69,10 @@ export default function MovieDetails() {
       fetchData()
     }
   }, [movie])
-    
 
-  if (!movie) return <div className="p-6">Loading...</div>
+  if (loading) return <div className="p-6">Loading...</div>;
+  if (error) return <div className="p-6 text-red-500">{error}</div>;
+  if (!movie) return <div className="p-6">Movie not found.</div>;
 
   return (
     <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white">
@@ -79,6 +103,7 @@ export default function MovieDetails() {
         <section className="p-6 border-t dark:border-gray-700">
           <h2 className="text-3xl font-bold mb-4">Overview</h2>
           <p className="text-lg leading-relaxed text-gray-800 dark:text-gray-200">{overview}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">Ratings: {movie.rating_count ?? "N/A"} votes</p>
         </section>
       </div>
     </div>
