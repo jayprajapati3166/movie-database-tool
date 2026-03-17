@@ -211,4 +211,118 @@ async function getMovieById(id) {
                     };
                     }
 
-module.exports = { listMovies, getMovieById};
+async function listTopRatedMovies(req, res) {
+    const safeLimit = Number.isInteger(limit) && limit > 0 && limit <= 100 ? limit : 20;
+    const safePage = Number.isInteger(page) && page > 0 ? page : 1;
+    const offset = (safePage - 1) * safeLimit;
+
+    const safeMinVotes = Number.isInteger(minVotes) && minVotes >= 0 ? minVotes : 50;
+
+    // Count query
+
+    const countQuery = `
+        SELECT COUNT(*)::INT AS total
+        FROM (
+            SELECT m.movie_id
+            FROM movies m
+            LEFT JOIN movie_links l ON l.tmdb_id = m.movie_id
+            LEFT JOIN ratings r ON r.movie_id = l.movie_lens_id
+            GROUP BY m.movie_id
+            HAVING COUNT(r.score) >= $1
+        ) sub;
+    `;
+
+    const countRes = await pool.query(countQuery, [safeMinVotes]);
+    const total = countRes.rows[0].total;
+
+    // Data query
+
+  const dataQuery = `
+    SELECT
+      m.movie_id,
+      m.title,
+      m.release_date,
+      m.runtime,
+      m.budget,
+      m.revenue,
+      COALESCE(ROUND(AVG(r.score)::numeric, 1), 0) AS avg_rating,
+      COUNT(r.score)::INT AS rating_count
+    FROM movies m
+    LEFT JOIN movie_links l ON l.tmdb_id = m.movie_id
+    LEFT JOIN ratings r ON r.movie_id = l.movie_lens_id
+    GROUP BY m.movie_id
+    HAVING COUNT(r.score) >= $1
+    ORDER BY avg_rating DESC, rating_count DESC
+    LIMIT $2 OFFSET $3;
+  `;
+
+
+    const dataRes = await pool.query(dataQuery, [safeMinVotes, safeLimit, offset]);
+
+    return {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+        data: dataRes.rows,
+    };
+
+}
+
+async function listTrendingMovies(req, res) {
+    // For simplicity, we'll define "trending" as movies released in the last 30 days with the highest average rating
+
+    const safeLimit = Number.isInteger(limit) && limit > 0 && limit <= 100 ? limit : 20;
+    const safePage = Number.isInteger(page) && page > 0 ? page : 1;
+    const offset = (safePage - 1) * safeLimit;
+
+    const safeDays = Number.isInteger(days) && days > 0 ? days : 30;
+
+    // Count query
+
+    const countQuery = `
+        SELECT COUNT(*)::INT AS total
+        FROM (
+            SELECT m.movie_id
+            FROM movies m
+            LEFT JOIN movie_links l ON l.tmdb_id = m.movie_id
+            LEFT JOIN ratings r ON r.movie_id = l.movie_lens_id
+            WHERE m.release_date >= CURRENT_DATE - INTERVAL '$1 days'
+            GROUP BY m.movie_id
+        ) sub;
+    `;
+
+    const countRes = await pool.query(countQuery, [safeDays]);
+    const total = countRes.rows[0].total;
+
+      const dataQuery = `
+    SELECT
+      m.movie_id,
+      m.title,
+      m.release_date,
+      m.runtime,
+      m.budget,
+      m.revenue,
+      COALESCE(ROUND(AVG(r.score)::numeric, 1), 0) AS avg_rating,
+      COUNT(r.score)::INT AS rating_count
+    FROM movies m
+    LEFT JOIN movie_links l ON l.tmdb_id = m.movie_id
+    LEFT JOIN ratings r ON r.movie_id = l.movie_lens_id
+    GROUP BY m.movie_id
+    HAVING COUNT(r.score) >= $1
+    ORDER BY avg_rating DESC, rating_count DESC
+    LIMIT $2 OFFSET $3;
+  `;
+
+    const dataRes = await pool.query(dataQuery, [safeDays, safeLimit, offset]);
+
+    return {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+        data: dataRes.rows,
+    };
+}
+
+module.exports = { listMovies, getMovieById, listTopRatedMovies, listTrendingMovies };
