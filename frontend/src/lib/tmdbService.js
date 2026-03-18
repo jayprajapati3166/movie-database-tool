@@ -7,6 +7,7 @@ const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
 // Cache for poster URLs to avoid repeated API calls
 const posterCache = new Map();
+const refinedcache = new Map();
 
 export const fetchMoviePoster = async (movieTitle, year) => {
   // Check cache first
@@ -53,6 +54,46 @@ export const fetchMoviePoster = async (movieTitle, year) => {
     console.error('Error fetching movie poster:', error);
     // Cache null on error
     posterCache.set(cacheKey, null);
+    return null;
+  }
+};
+
+export const fetchMovieOverview = async (movieTitle, year) => {
+  const cacheKey = `overview-${movieTitle}-${year}`;
+  
+  if (refinedcache.has(cacheKey)) {
+    return refinedcache.get(cacheKey);
+  }
+
+  try {
+    const searchResponse = await fetch(
+      `${TMDB_BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(movieTitle)}&year=${year}`
+    );
+
+    const searchData = await searchResponse.json();
+
+    if (searchData.results && searchData.results.length > 0) {
+      const movieSummary = searchData.results[0];
+
+      const detailResponse = await fetch(
+        `${TMDB_BASE_URL}/movie/${movieSummary.id}?api_key=${TMDB_API_KEY}`
+      );
+      const fullData = await detailResponse.json(); 
+
+      const result = {
+        overview: fullData.overview,
+        rating: fullData.vote_average,
+        runtime: fullData.runtime,
+        budget: fullData.budget,     
+        revenue: fullData.revenue
+      };
+      refinedcache.set(cacheKey, result);
+      return result;
+    }
+
+    return { overview: "No description available.", rating: 0, runtime: 0, budget: 0 };
+  } catch (error) {
+    console.error('Error fetching overview:', error);
     return null;
   }
 };
