@@ -15,8 +15,51 @@ const SORT_LABELS = {
   az: 'Alphabetical',
 };
 
-const CATALOG_LIMIT = 20;
+const CATALOG_PAGE_SIZE = 100;
 const SHOWCASE_LIMIT = 5;
+
+async function getAllCatalogMovies(filters) {
+  const firstPage = await getMovies({
+    ...filters,
+    page: 1,
+    limit: CATALOG_PAGE_SIZE,
+  });
+  const firstBatch = Array.isArray(firstPage.data) ? firstPage.data : [];
+  const parsedLimit = Number(firstPage.limit);
+  const pageSize = Number.isInteger(parsedLimit) && parsedLimit > 0 ? parsedLimit : CATALOG_PAGE_SIZE;
+  const parsedTotalPages = Number(firstPage.totalPages);
+
+  let totalPages = Number.isInteger(parsedTotalPages) && parsedTotalPages > 0 ? parsedTotalPages : null;
+
+  if (!totalPages) {
+    const parsedTotal = Number(firstPage.total);
+    if (Number.isFinite(parsedTotal) && parsedTotal > 0) {
+      totalPages = Math.max(1, Math.ceil(parsedTotal / pageSize));
+    }
+  }
+
+  if (!totalPages || totalPages <= 1) {
+    return firstBatch;
+  }
+
+  const pageRequests = [];
+  for (let page = 2; page <= totalPages; page += 1) {
+    pageRequests.push(
+      getMovies({
+        ...filters,
+        page,
+        limit: pageSize,
+      }),
+    );
+  }
+
+  const nextPages = await Promise.all(pageRequests);
+  const remainingMovies = nextPages.flatMap((result) =>
+    Array.isArray(result.data) ? result.data : [],
+  );
+
+  return [...firstBatch, ...remainingMovies];
+}
 
 function Home() {
   const [showcaseMovies, setShowcaseMovies] = useState([]);
@@ -66,31 +109,45 @@ function Home() {
   }, [sourceTick]);
 
   useEffect(() => {
+    let isCurrent = true;
+
     const loadCatalogMovies = async () => {
       setCatalogLoading(true);
       setCatalogError('');
 
       try {
         const sortConfig = SORT_OPTIONS[filters.sort] ?? SORT_OPTIONS.newest;
-        const result = await getMovies({
+        const result = await getAllCatalogMovies({
           title: filters.title.trim(),
-          page: 1,
-          limit: CATALOG_LIMIT,
           sortBy: sortConfig.sortBy,
           order: sortConfig.order,
         });
 
-        setCatalogMovies(Array.isArray(result.data) ? result.data : []);
+        if (!isCurrent) {
+          return;
+        }
+
+        setCatalogMovies(Array.isArray(result) ? result : []);
       } catch (err) {
         console.error('Failed to fetch movies:', err);
+        if (!isCurrent) {
+          return;
+        }
+
         setCatalogMovies([]);
         setCatalogError('Failed to load movies from backend.');
       } finally {
-        setCatalogLoading(false);
+        if (isCurrent) {
+          setCatalogLoading(false);
+        }
       }
     };
 
     loadCatalogMovies();
+
+    return () => {
+      isCurrent = false;
+    };
   }, [filters.title, filters.sort, sourceTick]);
 
   const handleFilterChange = (key, value) => {
@@ -123,7 +180,7 @@ function Home() {
           <div className="flex flex-wrap gap-2.5 pt-1 text-[0.68rem] font-semibold uppercase tracking-[0.22em]">
             <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-3 py-1.5 text-foreground/85 backdrop-blur-sm">
               <Clapperboard className="size-4 text-primary" />
-              Up to {CATALOG_LIMIT} titles per load
+              All available titles
             </span>
             <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-3 py-1.5 text-foreground/85 backdrop-blur-sm">
               <SlidersHorizontal className="size-4 text-primary" />
@@ -223,7 +280,7 @@ function Home() {
           <p className="text-sm text-muted-foreground">
             {hasSearch
               ? `Showing ${visibleCatalogMovies.length} matching titles sorted by ${activeSortLabel.toLowerCase()}.`
-              : `Showing up to ${CATALOG_LIMIT} titles sorted by ${activeSortLabel.toLowerCase()}.`}
+              : `Showing all available titles sorted by ${activeSortLabel.toLowerCase()}.`}
           </p>
         </div>
 
@@ -236,7 +293,7 @@ function Home() {
             {hasSearch ? 'No titles match the current search.' : 'All available titles are already shown above.'}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-7">
             {visibleCatalogMovies.map((movie) => (
               <MovieCard key={movie.movie_id ?? movie.id} movie={movie} />
             ))}
