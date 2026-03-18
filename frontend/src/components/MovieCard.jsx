@@ -40,7 +40,7 @@ function MovieCard({ movie, variant = 'default' }) {
       aria-label={`Open details for ${movie.title}`}
     >
       {variant === 'feature' ? (
-        <article className="surface-panel relative h-full min-h-[26rem] overflow-hidden p-5 sm:p-6 md:min-h-[30rem] md:p-8">
+        <article className="surface-panel relative h-full min-h-[22rem] overflow-hidden p-4 sm:p-5 md:min-h-[24rem] md:p-6">
           <div className="absolute inset-0">
             {posterUrl ? (
               <>
@@ -55,9 +55,9 @@ function MovieCard({ movie, variant = 'default' }) {
               <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(118,81,214,0.28),rgba(12,12,12,0.92)_42%,rgba(12,12,12,0.86))]" />
             )}
           </div>
-          <div className="relative grid h-full gap-6 md:grid-cols-[220px_minmax(0,1fr)] md:items-end">
-            <div className="mx-auto w-full max-w-[13.75rem] md:mx-0">
-              <div className="relative flex aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-[1.4rem] border border-white/12 bg-white/6 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.95)]">
+          <div className="relative grid h-full gap-4 md:grid-cols-[184px_minmax(0,1fr)] md:items-end">
+            <div className="mx-auto w-full max-w-[11.5rem] md:mx-0">
+              <div className="relative flex aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-[1.15rem] border border-white/12 bg-white/6 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.95)]">
                 {isLoading ? (
                   <div className="text-sm text-white/65">Loading poster...</div>
                 ) : posterUrl ? (
@@ -75,21 +75,21 @@ function MovieCard({ movie, variant = 'default' }) {
 
             <div className="flex h-full flex-col justify-end text-white">
               <span className="eyebrow text-primary">Featured title</span>
-              <h2 className="mt-3 max-w-3xl text-5xl leading-none sm:text-6xl md:text-7xl">{movie.title}</h2>
-              <div className="mt-5 flex flex-wrap gap-3 text-sm text-white/78">
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/6 px-4 py-2 backdrop-blur-sm">
+              <h2 className="mt-2 max-w-3xl text-4xl leading-none sm:text-5xl md:text-6xl">{movie.title}</h2>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/78 sm:text-sm">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/6 px-3 py-1.5 backdrop-blur-sm">
                   <CalendarDays className="size-4 text-primary" />
                   {year}
                 </span>
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/6 px-4 py-2 backdrop-blur-sm">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/6 px-3 py-1.5 backdrop-blur-sm">
                   <Star className="size-4 fill-primary text-primary" />
                   {displayRating} / 10
                 </span>
               </div>
-              <p className="mt-6 max-w-2xl text-sm leading-relaxed text-white/72 md:text-base">
+              <p className="mt-4 max-w-2xl text-xs leading-relaxed text-white/72 sm:text-sm md:text-[0.95rem]">
                 Open the record to review the release year, rating, and additional details.
               </p>
-              <div className="mt-8 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.24em] text-primary">
+              <div className="mt-5 inline-flex items-center gap-2 text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-primary sm:text-xs">
                 View details
                 <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </div>
@@ -97,9 +97,9 @@ function MovieCard({ movie, variant = 'default' }) {
           </div>
         </article>
       ) : variant === 'compact' ? (
-        <article className="surface-panel overflow-hidden p-3 transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/25 group-hover:shadow-[0_32px_80px_-46px_rgba(0,0,0,0.82)]">
-          <div className="flex items-center gap-4">
-            <div className="relative flex aspect-[2/3] w-20 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] border border-border/60 bg-muted">
+        <article className="surface-panel overflow-hidden p-2.5 transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/25 group-hover:shadow-[0_32px_80px_-46px_rgba(0,0,0,0.82)]">
+          <div className="flex items-center gap-3">
+            <div className="relative flex aspect-[2/3] w-16 shrink-0 items-center justify-center overflow-hidden rounded-[0.95rem] border border-border/60 bg-muted sm:w-[4.5rem]">
               {isLoading ? (
                 <div className="px-2 text-center text-[0.72rem] text-muted-foreground">Loading...</div>
               ) : posterUrl ? (
@@ -116,10 +116,10 @@ function MovieCard({ movie, variant = 'default' }) {
 
             <div className="min-w-0 flex-1">
               <span className="text-[0.62rem] font-semibold uppercase tracking-[0.32em] text-primary/80">Selected title</span>
-              <h3 className="mt-2 line-clamp-2 text-2xl leading-none text-card-foreground">{movie.title}</h3>
-              <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                <span className="rounded-full border border-border/70 bg-background/50 px-3 py-1.5">{year}</span>
-                <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 font-semibold text-primary">
+              <h3 className="mt-1.5 line-clamp-2 text-xl leading-none text-card-foreground sm:text-2xl">{movie.title}</h3>
+              <div className="mt-2 flex flex-wrap gap-2 text-[0.72rem] text-muted-foreground sm:text-xs">
+                <span className="rounded-full border border-border/70 bg-background/50 px-2.5 py-1">{year}</span>
+                <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 font-semibold text-primary">
                   {displayRating} / 10
                 </span>
               </div>
@@ -127,8 +127,8 @@ function MovieCard({ movie, variant = 'default' }) {
           </div>
         </article>
       ) : (
-        <article className="surface-panel h-full overflow-hidden p-3 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-primary/25 group-hover:shadow-[0_34px_90px_-52px_rgba(0,0,0,0.88)] md:p-4">
-          <div className="relative flex aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-[1.25rem] border border-border/60 bg-muted">
+        <article className="surface-panel h-full overflow-hidden p-2.5 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-primary/25 group-hover:shadow-[0_34px_90px_-52px_rgba(0,0,0,0.88)] md:p-3">
+          <div className="relative flex aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-[1rem] border border-border/60 bg-muted">
             {isLoading ? (
               <div className="text-sm text-muted-foreground">Loading poster...</div>
             ) : posterUrl ? (
@@ -152,15 +152,15 @@ function MovieCard({ movie, variant = 'default' }) {
             )}
           </div>
 
-          <div className="px-1 pb-1 pt-4">
-            <div className="flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-primary/80">
+          <div className="px-1 pb-1 pt-3">
+            <div className="flex items-center gap-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.26em] text-primary/80">
               <Star className="size-3.5 fill-primary text-primary" />
               Rating {displayRating}
             </div>
-            <h3 className="mt-3 line-clamp-2 text-3xl leading-none text-card-foreground">{movie.title}</h3>
-            <div className="mt-4 flex items-center justify-between gap-3 text-sm text-muted-foreground">
+            <h3 className="mt-2.5 line-clamp-2 text-[1.55rem] leading-none text-card-foreground md:text-[1.7rem]">{movie.title}</h3>
+            <div className="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground sm:text-sm">
               <span>{year}</span>
-              <span className="inline-flex items-center gap-1 text-primary">
+              <span className="inline-flex items-center gap-1 text-primary text-[0.72rem] font-medium sm:text-xs">
                 View details
                 <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </span>

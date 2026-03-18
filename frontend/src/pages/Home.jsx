@@ -109,28 +109,28 @@ function Home() {
     : catalogMovies.filter((movie) => !showcaseMovieIds.has(String(movie.movie_id ?? movie.id)));
 
   return (
-    <div className="space-y-8 md:space-y-10">
-      <section className="surface-panel relative overflow-hidden px-5 py-6 sm:px-6 md:px-8 md:py-8">
+    <div className="space-y-6 md:space-y-7">
+      <section className="surface-panel relative overflow-hidden px-4 py-4 sm:px-5 md:px-6 md:py-5">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(131,92,246,0.22),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.04),transparent_58%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(147,112,255,0.24),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.03),transparent_54%)]" />
-        <div className="relative space-y-4">
+        <div className="relative space-y-3">
           <span className="eyebrow">Movie Database Project</span>
-          <h1 className="max-w-3xl text-5xl leading-none sm:text-6xl md:text-7xl">
+          <h1 className="max-w-3xl text-4xl leading-none sm:text-5xl md:text-6xl">
             Browse the collection with a clearer layout.
           </h1>
-          <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
+          <p className="max-w-2xl text-sm text-muted-foreground md:text-[0.95rem]">
             Review featured titles, refine the main catalog with search and sorting, and open any record for more detail.
           </p>
-          <div className="flex flex-wrap gap-3 pt-2 text-xs font-semibold uppercase tracking-[0.24em]">
-            <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-4 py-2 text-foreground/85 backdrop-blur-sm">
+          <div className="flex flex-wrap gap-2.5 pt-1 text-[0.68rem] font-semibold uppercase tracking-[0.22em]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-3 py-1.5 text-foreground/85 backdrop-blur-sm">
               <Clapperboard className="size-4 text-primary" />
               Up to {CATALOG_LIMIT} titles per load
             </span>
-            <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-4 py-2 text-foreground/85 backdrop-blur-sm">
+            <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-3 py-1.5 text-foreground/85 backdrop-blur-sm">
               <SlidersHorizontal className="size-4 text-primary" />
               {activeSortLabel}
             </span>
             {hasSearch ? (
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-primary">
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-primary">
                 Search term: "{filters.title.trim()}"
               </span>
             ) : null}
@@ -139,19 +139,19 @@ function Home() {
       </section>
 
       {showcaseLoading ? (
-        <div className="surface-panel p-10 text-center text-muted-foreground">Loading featured titles...</div>
+        <div className="surface-panel p-6 text-center text-muted-foreground">Loading featured titles...</div>
       ) : showcaseError ? (
-        <div className="surface-panel p-10 text-center text-destructive">{showcaseError}</div>
+        <div className="surface-panel p-6 text-center text-destructive">{showcaseError}</div>
       ) : featuredMovie ? (
-        <section className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_360px]">
+        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_300px]">
           <MovieCard movie={featuredMovie} variant="feature" />
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex items-end justify-between gap-4">
               <div className="space-y-1">
                 <span className="eyebrow">Featured titles</span>
-                <h2 className="text-3xl leading-none sm:text-4xl">Quick picks</h2>
+                <h2 className="text-2xl leading-none sm:text-3xl">Quick picks</h2>
               </div>
-              <span className="rounded-full border border-border/70 bg-background/55 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.26em] text-muted-foreground">
+              <span className="rounded-full border border-border/70 bg-background/55 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                 {quickPickMovies.length} titles
               </span>
             </div>
@@ -161,7 +161,7 @@ function Home() {
                 <MovieCard key={movie.movie_id ?? movie.id} movie={movie} variant="compact" />
               ))
             ) : (
-              <div className="surface-panel p-6 text-sm text-muted-foreground">
+              <div className="surface-panel p-4 text-sm text-muted-foreground">
                 Featured titles will appear here when data is available.
               </div>
             )}
@@ -169,14 +169,14 @@ function Home() {
         </section>
       ) : null}
 
-      <section className="surface-panel px-5 py-5 sm:px-6 md:px-8 md:py-6">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+      <section className="surface-panel px-4 py-4 sm:px-5 md:px-6 md:py-5">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <div className="space-y-2">
             <span className="eyebrow">Catalog controls</span>
-            <h2 className="text-3xl leading-none sm:text-4xl">Search and sort the movie list.</h2>
+            <h2 className="text-2xl leading-none sm:text-3xl">Search and sort the movie list.</h2>
           </div>
 
-          <div className="grid w-full gap-4 xl:max-w-3xl xl:grid-cols-[minmax(0,1fr)_260px]">
+          <div className="grid w-full gap-3 xl:max-w-[40rem] xl:grid-cols-[minmax(0,1fr)_220px]">
             <label className="block text-[0.68rem] font-semibold uppercase tracking-[0.32em] text-muted-foreground">
               Search titles
               <div className="relative mt-2">
@@ -186,7 +186,7 @@ function Home() {
                   placeholder="Search movie titles"
                   value={filters.title}
                   onChange={(e) => handleFilterChange('title', e.target.value)}
-                  className="h-12 w-full rounded-full border border-border/70 bg-background/80 pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="h-11 w-full rounded-full border border-border/70 bg-background/80 pl-11 pr-4 text-sm text-foreground placeholder:text-muted-foreground hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </div>
             </label>
@@ -198,7 +198,7 @@ function Home() {
                 <select
                   value={filters.sort}
                   onChange={(e) => handleFilterChange('sort', e.target.value)}
-                  className="h-12 w-full appearance-none rounded-full border border-border/70 bg-background/80 pl-11 pr-10 text-sm text-foreground hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="h-11 w-full appearance-none rounded-full border border-border/70 bg-background/80 pl-11 pr-10 text-sm text-foreground hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   aria-label="Sort movies"
                 >
                   <option value="newest">Newest</option>
@@ -212,11 +212,11 @@ function Home() {
         </div>
       </section>
 
-      <section className="space-y-4">
+      <section className="space-y-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-1">
             <span className="eyebrow">{hasSearch ? 'Search results' : 'Catalog'}</span>
-            <h2 className="text-3xl leading-none sm:text-4xl">
+            <h2 className="text-2xl leading-none sm:text-3xl">
               {hasSearch ? 'Matching titles' : 'Movie list'}
             </h2>
           </div>
@@ -230,13 +230,13 @@ function Home() {
         {catalogLoading ? (
           <div className="surface-panel p-10 text-center text-muted-foreground">Loading movies...</div>
         ) : catalogError ? (
-          <div className="surface-panel p-10 text-center text-destructive">{catalogError}</div>
+          <div className="surface-panel p-6 text-center text-destructive">{catalogError}</div>
         ) : visibleCatalogMovies.length === 0 ? (
-          <div className="surface-panel p-10 text-center text-muted-foreground">
+          <div className="surface-panel p-6 text-center text-muted-foreground">
             {hasSearch ? 'No titles match the current search.' : 'All available titles are already shown above.'}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {visibleCatalogMovies.map((movie) => (
               <MovieCard key={movie.movie_id ?? movie.id} movie={movie} />
             ))}
