@@ -211,7 +211,7 @@ async function getMovieById(id) {
                     };
                     }
 
-async function listTopRatedMovies(req, res) {
+async function listTopRatedMovies({ page, limit, minVotes } = {}) {
     const safeLimit = Number.isInteger(limit) && limit > 0 && limit <= 100 ? limit : 20;
     const safePage = Number.isInteger(page) && page > 0 ? page : 1;
     const offset = (safePage - 1) * safeLimit;
@@ -269,7 +269,7 @@ async function listTopRatedMovies(req, res) {
 
 }
 
-async function listTrendingMovies(req, res) {
+async function listTrendingMovies({ page, limit, days } = {}) {
     // For simplicity, we'll define "trending" as movies released in the last 30 days with the highest average rating
 
     const safeLimit = Number.isInteger(limit) && limit > 0 && limit <= 100 ? limit : 20;
@@ -287,7 +287,7 @@ async function listTrendingMovies(req, res) {
             FROM movies m
             LEFT JOIN movie_links l ON l.tmdb_id = m.movie_id
             LEFT JOIN ratings r ON r.movie_id = l.movie_lens_id
-            WHERE m.release_date >= CURRENT_DATE - INTERVAL '$1 days'
+            WHERE m.release_date >= CURRENT_DATE - ($1 * INTERVAL '1 day')
             GROUP BY m.movie_id
         ) sub;
     `;
@@ -308,8 +308,8 @@ async function listTrendingMovies(req, res) {
     FROM movies m
     LEFT JOIN movie_links l ON l.tmdb_id = m.movie_id
     LEFT JOIN ratings r ON r.movie_id = l.movie_lens_id
+    WHERE m.release_date >= CURRENT_DATE - ($1 * INTERVAL '1 day')
     GROUP BY m.movie_id
-    HAVING COUNT(r.score) >= $1
     ORDER BY avg_rating DESC, rating_count DESC
     LIMIT $2 OFFSET $3;
   `;
