@@ -252,7 +252,7 @@ function Home() {
   const visibleCatalogMovies = hasSearch
     ? catalogMovies
     : catalogMovies.filter((movie) => !showcaseMovieIds.has(String(movie.movie_id ?? movie.id)));
-  const loadedCatalogLabel = Number.isFinite(catalogTotalCount)
+  const loadedCatalogLabel = hasSearch && Number.isFinite(catalogTotalCount)
     ? `${visibleCatalogMovies.length} of ${catalogTotalCount}`
     : `${visibleCatalogMovies.length}`;
 
