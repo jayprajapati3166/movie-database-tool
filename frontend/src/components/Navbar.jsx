@@ -81,7 +81,6 @@ function Navbar() {
               className="h-9 appearance-none rounded-full border border-border/70 bg-card/75 px-3.5 pr-9 text-xs font-medium text-foreground shadow-sm transition-colors hover:border-primary/40 hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Data source"
             >
-              <option value="auto">Auto</option>
               <option value="mock">Mock</option>
               <option value="backend">Backend</option>
             </select>
