@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ArrowUpRight, CalendarDays, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fetchMoviePoster } from '../lib/tmdbService';
+import { addRecentlyViewedMovie } from '@/features/movies/recentlyViewed';
 
 function MovieCard({ movie, variant = 'default' }) {
   const [posterUrl, setPosterUrl] = useState(null);
@@ -33,9 +34,14 @@ function MovieCard({ movie, variant = 'default' }) {
     loadPoster();
   }, [movie.title, year]);
 
+  const handleMovieClick = () => {
+    addRecentlyViewedMovie(movie);
+  };
+
   return (
     <Link
       to={`/movies/${movieId}`}
+      onClick={handleMovieClick}
       className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       aria-label={`Open details for ${movie.title}`}
     >
