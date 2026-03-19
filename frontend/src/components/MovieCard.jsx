@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, CalendarDays, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fetchMoviePoster } from '../lib/tmdbService';
 
 function MovieCard({ movie, variant = 'default' }) {
+  const loadImmediately = variant !== 'default';
+  const cardRef = useRef(null);
   const [posterUrl, setPosterUrl] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [shouldLoadPoster, setShouldLoadPoster] = useState(loadImmediately);
+  const [isLoading, setIsLoading] = useState(loadImmediately);
 
   const movieId = movie.movie_id ?? movie.id;
   const parsedReleaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : movie.year;
@@ -15,26 +18,88 @@ function MovieCard({ movie, variant = 'default' }) {
   const displayRating = Number.isFinite(numericRating) ? numericRating.toFixed(1) : 'N/A';
 
   useEffect(() => {
+    if (loadImmediately) {
+      setShouldLoadPoster(true);
+    }
+  }, [loadImmediately]);
+
+  useEffect(() => {
+    if (shouldLoadPoster) {
+      return undefined;
+    }
+
+    if (typeof window === 'undefined' || typeof window.IntersectionObserver === 'undefined') {
+      setShouldLoadPoster(true);
+      return undefined;
+    }
+
+    const cardNode = cardRef.current;
+    if (!cardNode) {
+      setShouldLoadPoster(true);
+      return undefined;
+    }
+
+    const observer = new window.IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setShouldLoadPoster(true);
+          observer.disconnect();
+        }
+      },
+      {
+        root: null,
+        rootMargin: '220px 0px',
+        threshold: 0.01,
+      },
+    );
+
+    observer.observe(cardNode);
+
+    return () => observer.disconnect();
+  }, [shouldLoadPoster]);
+
+  useEffect(() => {
+    if (!shouldLoadPoster) {
+      return undefined;
+    }
+
+    let isCurrent = true;
+
     const loadPoster = async () => {
       setIsLoading(true);
       setPosterUrl(null);
 
       try {
         const url = await fetchMoviePoster(movie.title, year);
+        if (!isCurrent) {
+          return;
+        }
+
         setPosterUrl(url);
       } catch {
+        if (!isCurrent) {
+          return;
+        }
+
         console.error('Failed to load poster for:', movie.title);
         setPosterUrl(null);
       } finally {
-        setIsLoading(false);
+        if (isCurrent) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadPoster();
-  }, [movie.title, year]);
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [movie.title, shouldLoadPoster, year]);
 
   return (
     <Link
+      ref={cardRef}
       to={`/movies/${movieId}`}
       className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       aria-label={`Open details for ${movie.title}`}
@@ -58,12 +123,14 @@ function MovieCard({ movie, variant = 'default' }) {
           <div className="relative grid h-full gap-4 md:grid-cols-[184px_minmax(0,1fr)] md:items-end">
             <div className="mx-auto w-full max-w-[11.5rem] md:mx-0">
               <div className="relative flex aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-[1.15rem] border border-white/12 bg-white/6 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.95)]">
-                {isLoading ? (
+                {!shouldLoadPoster || isLoading ? (
                   <div className="text-sm text-white/65">Loading poster...</div>
                 ) : posterUrl ? (
                   <img
                     src={posterUrl}
                     alt={`${movie.title} poster`}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                     onError={() => setPosterUrl(null)}
                   />
@@ -100,12 +167,14 @@ function MovieCard({ movie, variant = 'default' }) {
         <article className="surface-panel overflow-hidden p-2.5 transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/25 group-hover:shadow-[0_32px_80px_-46px_rgba(0,0,0,0.82)]">
           <div className="flex items-center gap-3">
             <div className="relative flex aspect-[2/3] w-16 shrink-0 items-center justify-center overflow-hidden rounded-[0.95rem] border border-border/60 bg-muted sm:w-[4.5rem]">
-              {isLoading ? (
+              {!shouldLoadPoster || isLoading ? (
                 <div className="px-2 text-center text-[0.72rem] text-muted-foreground">Loading...</div>
               ) : posterUrl ? (
                 <img
                   src={posterUrl}
                   alt={`${movie.title} poster`}
+                  loading="lazy"
+                  decoding="async"
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   onError={() => setPosterUrl(null)}
                 />
@@ -129,7 +198,7 @@ function MovieCard({ movie, variant = 'default' }) {
       ) : (
         <article className="surface-panel h-full overflow-hidden p-2.5 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:border-primary/25 group-hover:shadow-[0_34px_90px_-52px_rgba(0,0,0,0.88)] md:p-3">
           <div className="relative flex aspect-[2/3] w-full items-center justify-center overflow-hidden rounded-[1rem] border border-border/60 bg-muted">
-            {isLoading ? (
+            {!shouldLoadPoster || isLoading ? (
               <div className="text-sm text-muted-foreground">Loading poster...</div>
             ) : posterUrl ? (
               <>
@@ -141,6 +210,8 @@ function MovieCard({ movie, variant = 'default' }) {
                 <img
                   src={posterUrl}
                   alt={`${movie.title} poster`}
+                  loading="lazy"
+                  decoding="async"
                   className="relative h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   onError={() => setPosterUrl(null)}
                 />
