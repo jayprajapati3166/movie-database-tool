@@ -215,7 +215,7 @@ function Home() {
       ) : showcaseError ? (
         <div className="surface-panel p-6 text-center text-destructive">{showcaseError}</div>
       ) : featuredMovie ? (
-        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_300px]">
+        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_280px]">
           <MovieCard movie={featuredMovie} variant="feature" />
           <div className="space-y-3">
             <div className="flex items-end justify-between gap-4">
