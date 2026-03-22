@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ArrowUpRight, CalendarDays, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fetchMoviePoster } from '../lib/tmdbService';
+import { addRecentlyViewedMovie } from '@/features/movies/recentlyViewed';
 
 function MovieCard({ movie, variant = 'default' }) {
   const [posterUrl, setPosterUrl] = useState(null);
@@ -33,9 +34,14 @@ function MovieCard({ movie, variant = 'default' }) {
     loadPoster();
   }, [movie.title, year]);
 
+  const handleMovieClick = () => {
+    addRecentlyViewedMovie(movie);
+  };
+
   return (
     <Link
       to={`/movies/${movieId}`}
+      onClick={handleMovieClick}
       className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       aria-label={`Open details for ${movie.title}`}
     >
@@ -97,9 +103,9 @@ function MovieCard({ movie, variant = 'default' }) {
           </div>
         </article>
       ) : variant === 'compact' ? (
-        <article className="surface-panel overflow-hidden p-2.5 transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/25 group-hover:shadow-[0_32px_80px_-46px_rgba(0,0,0,0.82)]">
-          <div className="flex items-center gap-3">
-            <div className="relative flex aspect-[2/3] w-16 shrink-0 items-center justify-center overflow-hidden rounded-[0.95rem] border border-border/60 bg-muted sm:w-[4.5rem]">
+        <article className="surface-panel overflow-hidden p-2 transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/25 group-hover:shadow-[0_32px_80px_-46px_rgba(0,0,0,0.82)]">
+          <div className="flex items-center gap-2.5">
+            <div className="relative flex aspect-[2/3] w-14 shrink-0 items-center justify-center overflow-hidden rounded-[0.9rem] border border-border/60 bg-muted sm:w-16">
               {isLoading ? (
                 <div className="px-2 text-center text-[0.72rem] text-muted-foreground">Loading...</div>
               ) : posterUrl ? (
@@ -115,11 +121,11 @@ function MovieCard({ movie, variant = 'default' }) {
             </div>
 
             <div className="min-w-0 flex-1">
-              <span className="text-[0.62rem] font-semibold uppercase tracking-[0.32em] text-primary/80">Selected title</span>
-              <h3 className="mt-1.5 line-clamp-2 text-xl leading-none text-card-foreground sm:text-2xl">{movie.title}</h3>
-              <div className="mt-2 flex flex-wrap gap-2 text-[0.72rem] text-muted-foreground sm:text-xs">
-                <span className="rounded-full border border-border/70 bg-background/50 px-2.5 py-1">{year}</span>
-                <span className="rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 font-semibold text-primary">
+              <span className="text-[0.58rem] font-semibold uppercase tracking-[0.3em] text-primary/80">Selected title</span>
+              <h3 className="mt-1 line-clamp-2 text-lg leading-none text-card-foreground sm:text-[1.35rem]">{movie.title}</h3>
+              <div className="mt-1.5 flex flex-wrap gap-1.5 text-[0.68rem] text-muted-foreground sm:text-[0.72rem]">
+                <span className="rounded-full border border-border/70 bg-background/50 px-2 py-0.5">{year}</span>
+                <span className="rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 font-semibold text-primary">
                   {displayRating} / 10
                 </span>
               </div>

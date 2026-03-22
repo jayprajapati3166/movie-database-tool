@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown, Moon, Sun } from 'lucide-react';
+import { ChevronDown, Clock3, Moon, Sun } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 import { getDataSource, setDataSource } from '@/features/movies/api';
+import { getRecentlyViewedMovies, onRecentlyViewedChanged } from '@/features/movies/recentlyViewed';
 
 function Navbar() {
   const [dataSource, setDataSourceState] = useState(() => getDataSource());
+  const [recentlyViewedCount, setRecentlyViewedCount] = useState(() => getRecentlyViewedMovies().length);
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       const storedTheme = localStorage.getItem('theme');
@@ -36,6 +38,14 @@ function Navbar() {
     }
   }, [isDark]);
 
+  useEffect(() => {
+    const syncRecentlyViewedCount = () => {
+      setRecentlyViewedCount(getRecentlyViewedMovies().length);
+    };
+
+    return onRecentlyViewedChanged(syncRecentlyViewedCount);
+  }, []);
+
   const toggleTheme = () => setIsDark((value) => !value);
   const handleDataSourceChange = (event) => {
     const nextSource = setDataSource(event.target.value);
@@ -62,7 +72,7 @@ function Navbar() {
               <NavLink
                 to="/"
                 className={({ isActive }) =>
-                  `inline-flex h-9 items-center rounded-full border px-3.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] transition-colors ${
+                  `inline-flex h-9 items-center rounded-full border px-3.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] transition-colors whitespace-nowrap ${
                     isActive
                       ? 'border-primary/70 bg-primary text-primary-foreground shadow-[0_16px_30px_-22px_rgba(112,79,255,0.7)]'
                       : 'border-border/70 bg-card/70 text-muted-foreground hover:border-primary/40 hover:text-foreground'
@@ -73,6 +83,26 @@ function Navbar() {
                 Home
               </NavLink>
             </li>
+            {recentlyViewedCount > 0 ? (
+              <li>
+                <NavLink
+                  to="/recently-viewed"
+                  className={({ isActive }) =>
+                    `inline-flex h-9 items-center gap-2 rounded-full border px-3.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] transition-colors whitespace-nowrap ${
+                      isActive
+                        ? 'border-primary/70 bg-primary text-primary-foreground shadow-[0_16px_30px_-22px_rgba(112,79,255,0.7)]'
+                        : 'border-border/70 bg-card/70 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                    }`
+                  }
+                >
+                  <Clock3 className="size-3.5" />
+                  Recent
+                  <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-background/18 px-1.5 py-0.5 text-[0.62rem] tracking-[0.2em]">
+                    {recentlyViewedCount}
+                  </span>
+                </NavLink>
+              </li>
+            ) : null}
           </ul>
           <div className="relative">
             <select

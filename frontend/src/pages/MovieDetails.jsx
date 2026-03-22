@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { CalendarDays, Clock3, Coins, ReceiptText, Star } from "lucide-react"
 import { useParams } from "react-router-dom"
 import { getMovie, onDataSourceChanged } from "@/features/movies/api"
+import { addRecentlyViewedMovie } from "@/features/movies/recentlyViewed"
 import { fetchMoviePoster, fetchMovieOverview } from "@/lib/tmdbService";
 
 export default function MovieDetails() {
@@ -81,6 +82,12 @@ export default function MovieDetails() {
 
     if (movie) {
       fetchData()
+    }
+  }, [movie])
+
+  useEffect(() => {
+    if (movie) {
+      addRecentlyViewedMovie(movie)
     }
   }, [movie])
 
