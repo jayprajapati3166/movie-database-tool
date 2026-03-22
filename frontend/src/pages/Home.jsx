@@ -15,61 +15,21 @@ const SORT_LABELS = {
   az: 'Alphabetical',
 };
 
-const CATALOG_PAGE_SIZE = 100;
-const SHOWCASE_LIMIT = 5;
-
-async function getAllCatalogMovies(filters) {
-  const firstPage = await getMovies({
-    ...filters,
-    page: 1,
-    limit: CATALOG_PAGE_SIZE,
-  });
-  const firstBatch = Array.isArray(firstPage.data) ? firstPage.data : [];
-  const parsedLimit = Number(firstPage.limit);
-  const pageSize = Number.isInteger(parsedLimit) && parsedLimit > 0 ? parsedLimit : CATALOG_PAGE_SIZE;
-  const parsedTotalPages = Number(firstPage.totalPages);
-
-  let totalPages = Number.isInteger(parsedTotalPages) && parsedTotalPages > 0 ? parsedTotalPages : null;
-
-  if (!totalPages) {
-    const parsedTotal = Number(firstPage.total);
-    if (Number.isFinite(parsedTotal) && parsedTotal > 0) {
-      totalPages = Math.max(1, Math.ceil(parsedTotal / pageSize));
-    }
-  }
-
-  if (!totalPages || totalPages <= 1) {
-    return firstBatch;
-  }
-
-  const pageRequests = [];
-  for (let page = 2; page <= totalPages; page += 1) {
-    pageRequests.push(
-      getMovies({
-        ...filters,
-        page,
-        limit: pageSize,
-      }),
-    );
-  }
-
-  const nextPages = await Promise.all(pageRequests);
-  const remainingMovies = nextPages.flatMap((result) =>
-    Array.isArray(result.data) ? result.data : [],
-  );
-
-  return [...firstBatch, ...remainingMovies];
-}
-
+const CATALOG_PAGE_SIZE = 10;
+const SHOWCASE_LIMIT = 3;
 function Home() {
   const [showcaseMovies, setShowcaseMovies] = useState([]);
   const [catalogMovies, setCatalogMovies] = useState([]);
+  const [catalogPage, setCatalogPage] = useState(1);
+  const [catalogTotal, setCatalogTotal] = useState(0);
+  const [catalogTotalPages, setCatalogTotalPages] = useState(1);
   const [filters, setFilters] = useState({
     title: '',
     sort: 'newest',
   });
   const [showcaseLoading, setShowcaseLoading] = useState(true);
   const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogLoadingMore, setCatalogLoadingMore] = useState(false);
   const [showcaseError, setShowcaseError] = useState('');
   const [catalogError, setCatalogError] = useState('');
   const [sourceTick, setSourceTick] = useState(0);
@@ -117,17 +77,29 @@ function Home() {
 
       try {
         const sortConfig = SORT_OPTIONS[filters.sort] ?? SORT_OPTIONS.newest;
-        const result = await getAllCatalogMovies({
+        const result = await getMovies({
           title: filters.title.trim(),
           sortBy: sortConfig.sortBy,
           order: sortConfig.order,
+          page: 1,
+          limit: CATALOG_PAGE_SIZE,
         });
 
         if (!isCurrent) {
           return;
         }
 
-        setCatalogMovies(Array.isArray(result) ? result : []);
+        const nextMovies = Array.isArray(result.data) ? result.data : [];
+        const nextPage = Number(result.page);
+        const nextTotal = Number(result.total);
+        const nextTotalPages = Number(result.totalPages);
+
+        setCatalogMovies(nextMovies);
+        setCatalogPage(Number.isInteger(nextPage) && nextPage > 0 ? nextPage : 1);
+        setCatalogTotal(Number.isFinite(nextTotal) && nextTotal >= 0 ? nextTotal : nextMovies.length);
+        setCatalogTotalPages(
+          Number.isInteger(nextTotalPages) && nextTotalPages > 0 ? nextTotalPages : 1,
+        );
       } catch (err) {
         console.error('Failed to fetch movies:', err);
         if (!isCurrent) {
@@ -135,6 +107,9 @@ function Home() {
         }
 
         setCatalogMovies([]);
+        setCatalogPage(1);
+        setCatalogTotal(0);
+        setCatalogTotalPages(1);
         setCatalogError('Failed to load movies from backend.');
       } finally {
         if (isCurrent) {
@@ -150,6 +125,50 @@ function Home() {
     };
   }, [filters.title, filters.sort, sourceTick]);
 
+  const loadMoreCatalogMovies = async () => {
+    if (catalogLoadingMore || catalogPage >= catalogTotalPages) {
+      return;
+    }
+
+    setCatalogLoadingMore(true);
+    setCatalogError('');
+
+    try {
+      const sortConfig = SORT_OPTIONS[filters.sort] ?? SORT_OPTIONS.newest;
+      const nextPageNumber = catalogPage + 1;
+      const result = await getMovies({
+        title: filters.title.trim(),
+        sortBy: sortConfig.sortBy,
+        order: sortConfig.order,
+        page: nextPageNumber,
+        limit: CATALOG_PAGE_SIZE,
+      });
+
+      const nextMovies = Array.isArray(result.data) ? result.data : [];
+      const confirmedPage = Number(result.page);
+      const nextTotal = Number(result.total);
+      const nextTotalPages = Number(result.totalPages);
+
+      setCatalogMovies((prev) => [...prev, ...nextMovies]);
+      setCatalogPage(
+        Number.isInteger(confirmedPage) && confirmedPage > 0 ? confirmedPage : nextPageNumber,
+      );
+
+      if (Number.isFinite(nextTotal) && nextTotal >= 0) {
+        setCatalogTotal(nextTotal);
+      }
+
+      if (Number.isInteger(nextTotalPages) && nextTotalPages > 0) {
+        setCatalogTotalPages(nextTotalPages);
+      }
+    } catch (err) {
+      console.error('Failed to load more movies:', err);
+      setCatalogError('Failed to load more movies from backend.');
+    } finally {
+      setCatalogLoadingMore(false);
+    }
+  };
+
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
@@ -158,12 +177,8 @@ function Home() {
   const featuredMovie = showcaseMovies[0] ?? null;
   const quickPickMovies = showcaseMovies.slice(1, SHOWCASE_LIMIT);
   const activeSortLabel = SORT_LABELS[filters.sort] ?? SORT_LABELS.newest;
-  const showcaseMovieIds = new Set(
-    showcaseMovies.map((movie) => String(movie.movie_id ?? movie.id)),
-  );
-  const visibleCatalogMovies = hasSearch
-    ? catalogMovies
-    : catalogMovies.filter((movie) => !showcaseMovieIds.has(String(movie.movie_id ?? movie.id)));
+  const visibleCatalogMovies = catalogMovies;
+  const hasMoreCatalogMovies = catalogPage < catalogTotalPages;
 
   return (
     <div className="space-y-6 md:space-y-7">
@@ -279,8 +294,8 @@ function Home() {
           </div>
           <p className="text-sm text-muted-foreground">
             {hasSearch
-              ? `Showing ${visibleCatalogMovies.length} matching titles sorted by ${activeSortLabel.toLowerCase()}.`
-              : `Showing all available titles sorted by ${activeSortLabel.toLowerCase()}.`}
+              ? `Showing ${visibleCatalogMovies.length} of ${catalogTotal} matching titles sorted by ${activeSortLabel.toLowerCase()}.`
+              : `Showing ${visibleCatalogMovies.length} of ${catalogTotal} available titles sorted by ${activeSortLabel.toLowerCase()}.`}
           </p>
         </div>
 
@@ -293,10 +308,25 @@ function Home() {
             {hasSearch ? 'No titles match the current search.' : 'All available titles are already shown above.'}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-7">
-            {visibleCatalogMovies.map((movie) => (
-              <MovieCard key={movie.movie_id ?? movie.id} movie={movie} />
-            ))}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-7">
+              {visibleCatalogMovies.map((movie) => (
+                <MovieCard key={movie.movie_id ?? movie.id} movie={movie} />
+              ))}
+            </div>
+
+            {hasMoreCatalogMovies ? (
+              <div className="flex justify-center">
+                <button
+                  type="button"
+                  onClick={loadMoreCatalogMovies}
+                  disabled={catalogLoadingMore}
+                  className="rounded-full border border-border/70 bg-background/80 px-5 py-2.5 text-sm font-semibold text-foreground transition hover:border-primary/30 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {catalogLoadingMore ? 'Loading more...' : 'Load more movies'}
+                </button>
+              </div>
+            ) : null}
           </div>
         )}
       </section>
