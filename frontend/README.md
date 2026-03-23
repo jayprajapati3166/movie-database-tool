@@ -42,17 +42,16 @@ If you don't set up the TMDB API key, the app will still work but show placehold
 
 You can switch data source at runtime from the navbar dropdown:
 
-- `Auto`: tries backend first, falls back to mock data.
 - `Mock`: uses local mock data only.
 - `Backend`: uses backend only (shows an error if backend is unavailable).
 
 Optional default mode via environment variable:
 
 ```bash
-VITE_DATA_SOURCE=auto
+VITE_DATA_SOURCE=backend
 ```
 
-Valid values are `auto`, `mock`, and `backend`.
+Valid values are `mock` and `backend`.
 
 ## Tech Stack
 

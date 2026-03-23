@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronDown, Clapperboard, Search, SlidersHorizontal } from 'lucide-react';
 import { getMovies, onDataSourceChanged } from '../features/movies/api';
 import MovieCard from '../components/MovieCard';
@@ -15,50 +15,28 @@ const SORT_LABELS = {
   az: 'Alphabetical',
 };
 
-const CATALOG_PAGE_SIZE = 100;
+const CATALOG_PAGE_SIZE = 24;
 const SHOWCASE_LIMIT = 5;
 
-async function getAllCatalogMovies(filters) {
-  const firstPage = await getMovies({
-    ...filters,
-    page: 1,
-    limit: CATALOG_PAGE_SIZE,
-  });
-  const firstBatch = Array.isArray(firstPage.data) ? firstPage.data : [];
-  const parsedLimit = Number(firstPage.limit);
-  const pageSize = Number.isInteger(parsedLimit) && parsedLimit > 0 ? parsedLimit : CATALOG_PAGE_SIZE;
-  const parsedTotalPages = Number(firstPage.totalPages);
+function parsePositiveInteger(value) {
+  const parsedValue = Number(value);
+  return Number.isInteger(parsedValue) && parsedValue > 0 ? parsedValue : null;
+}
 
-  let totalPages = Number.isInteger(parsedTotalPages) && parsedTotalPages > 0 ? parsedTotalPages : null;
-
-  if (!totalPages) {
-    const parsedTotal = Number(firstPage.total);
-    if (Number.isFinite(parsedTotal) && parsedTotal > 0) {
-      totalPages = Math.max(1, Math.ceil(parsedTotal / pageSize));
-    }
+function parseTotalPages(result, fallbackLimit = CATALOG_PAGE_SIZE) {
+  const parsedTotalPages = parsePositiveInteger(result?.totalPages);
+  if (parsedTotalPages) {
+    return parsedTotalPages;
   }
 
-  if (!totalPages || totalPages <= 1) {
-    return firstBatch;
+  const parsedTotal = Number(result?.total);
+  const parsedLimit = parsePositiveInteger(result?.limit) ?? fallbackLimit;
+
+  if (Number.isFinite(parsedTotal) && parsedTotal > 0) {
+    return Math.max(1, Math.ceil(parsedTotal / parsedLimit));
   }
 
-  const pageRequests = [];
-  for (let page = 2; page <= totalPages; page += 1) {
-    pageRequests.push(
-      getMovies({
-        ...filters,
-        page,
-        limit: pageSize,
-      }),
-    );
-  }
-
-  const nextPages = await Promise.all(pageRequests);
-  const remainingMovies = nextPages.flatMap((result) =>
-    Array.isArray(result.data) ? result.data : [],
-  );
-
-  return [...firstBatch, ...remainingMovies];
+  return 1;
 }
 
 function Home() {
@@ -70,9 +48,16 @@ function Home() {
   });
   const [showcaseLoading, setShowcaseLoading] = useState(true);
   const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogLoadingMore, setCatalogLoadingMore] = useState(false);
   const [showcaseError, setShowcaseError] = useState('');
   const [catalogError, setCatalogError] = useState('');
+  const [catalogLoadMoreError, setCatalogLoadMoreError] = useState('');
+  const [catalogPage, setCatalogPage] = useState(1);
+  const [catalogTotalPages, setCatalogTotalPages] = useState(1);
+  const [catalogTotalCount, setCatalogTotalCount] = useState(null);
   const [sourceTick, setSourceTick] = useState(0);
+  const catalogRequestTokenRef = useRef(0);
+  const loadMoreTriggerRef = useRef(null);
 
   useEffect(() => {
     const unsubscribe = onDataSourceChanged(() => {
@@ -110,34 +95,51 @@ function Home() {
 
   useEffect(() => {
     let isCurrent = true;
+    const requestToken = catalogRequestTokenRef.current + 1;
+    catalogRequestTokenRef.current = requestToken;
 
     const loadCatalogMovies = async () => {
       setCatalogLoading(true);
+      setCatalogLoadingMore(false);
       setCatalogError('');
+      setCatalogLoadMoreError('');
+      setCatalogMovies([]);
+      setCatalogPage(1);
+      setCatalogTotalPages(1);
+      setCatalogTotalCount(null);
 
       try {
         const sortConfig = SORT_OPTIONS[filters.sort] ?? SORT_OPTIONS.newest;
-        const result = await getAllCatalogMovies({
+        const result = await getMovies({
           title: filters.title.trim(),
           sortBy: sortConfig.sortBy,
           order: sortConfig.order,
+          page: 1,
+          limit: CATALOG_PAGE_SIZE,
         });
 
-        if (!isCurrent) {
+        if (!isCurrent || catalogRequestTokenRef.current !== requestToken) {
           return;
         }
 
-        setCatalogMovies(Array.isArray(result) ? result : []);
+        const firstPageMovies = Array.isArray(result.data) ? result.data : [];
+        const resolvedPage = parsePositiveInteger(result.page) ?? 1;
+        const parsedTotal = Number(result.total);
+
+        setCatalogMovies(firstPageMovies);
+        setCatalogPage(resolvedPage);
+        setCatalogTotalPages(parseTotalPages(result, CATALOG_PAGE_SIZE));
+        setCatalogTotalCount(Number.isFinite(parsedTotal) ? parsedTotal : null);
       } catch (err) {
         console.error('Failed to fetch movies:', err);
-        if (!isCurrent) {
+        if (!isCurrent || catalogRequestTokenRef.current !== requestToken) {
           return;
         }
 
         setCatalogMovies([]);
         setCatalogError('Failed to load movies from backend.');
       } finally {
-        if (isCurrent) {
+        if (isCurrent && catalogRequestTokenRef.current === requestToken) {
           setCatalogLoading(false);
         }
       }
@@ -149,6 +151,92 @@ function Home() {
       isCurrent = false;
     };
   }, [filters.title, filters.sort, sourceTick]);
+
+  const loadMoreCatalogMovies = useCallback(async () => {
+    const requestToken = catalogRequestTokenRef.current;
+
+    if (catalogLoading || catalogLoadingMore || catalogPage >= catalogTotalPages) {
+      return;
+    }
+
+    setCatalogLoadingMore(true);
+    setCatalogLoadMoreError('');
+
+    try {
+      const sortConfig = SORT_OPTIONS[filters.sort] ?? SORT_OPTIONS.newest;
+      const nextPage = catalogPage + 1;
+      const result = await getMovies({
+        title: filters.title.trim(),
+        sortBy: sortConfig.sortBy,
+        order: sortConfig.order,
+        page: nextPage,
+        limit: CATALOG_PAGE_SIZE,
+      });
+
+      if (catalogRequestTokenRef.current !== requestToken) {
+        return;
+      }
+
+      const nextPageMovies = Array.isArray(result.data) ? result.data : [];
+      const resolvedPage = parsePositiveInteger(result.page) ?? nextPage;
+      const parsedTotal = Number(result.total);
+
+      setCatalogMovies((previousMovies) => [...previousMovies, ...nextPageMovies]);
+      setCatalogPage(resolvedPage);
+      setCatalogTotalPages((previousTotalPages) => (
+        Math.max(previousTotalPages, parseTotalPages(result, CATALOG_PAGE_SIZE))
+      ));
+
+      if (Number.isFinite(parsedTotal)) {
+        setCatalogTotalCount(parsedTotal);
+      }
+    } catch (err) {
+      console.error('Failed to fetch additional movies:', err);
+      if (catalogRequestTokenRef.current !== requestToken) {
+        return;
+      }
+
+      setCatalogLoadMoreError('Failed to load more titles.');
+    } finally {
+      if (catalogRequestTokenRef.current === requestToken) {
+        setCatalogLoadingMore(false);
+      }
+    }
+  }, [catalogLoading, catalogLoadingMore, catalogPage, catalogTotalPages, filters.sort, filters.title]);
+
+  const catalogHasMore = catalogPage < catalogTotalPages;
+
+  useEffect(() => {
+    if (!catalogHasMore || catalogLoading || catalogLoadingMore) {
+      return undefined;
+    }
+
+    if (typeof window === 'undefined' || typeof window.IntersectionObserver === 'undefined') {
+      return undefined;
+    }
+
+    const trigger = loadMoreTriggerRef.current;
+    if (!trigger) {
+      return undefined;
+    }
+
+    const observer = new window.IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          loadMoreCatalogMovies();
+        }
+      },
+      {
+        root: null,
+        rootMargin: '260px 0px',
+        threshold: 0,
+      },
+    );
+
+    observer.observe(trigger);
+
+    return () => observer.disconnect();
+  }, [catalogHasMore, catalogLoading, catalogLoadingMore, loadMoreCatalogMovies]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -164,6 +252,9 @@ function Home() {
   const visibleCatalogMovies = hasSearch
     ? catalogMovies
     : catalogMovies.filter((movie) => !showcaseMovieIds.has(String(movie.movie_id ?? movie.id)));
+  const loadedCatalogLabel = hasSearch && Number.isFinite(catalogTotalCount)
+    ? `${visibleCatalogMovies.length} of ${catalogTotalCount}`
+    : `${visibleCatalogMovies.length}`;
 
   return (
     <div className="space-y-6 md:space-y-7">
@@ -279,8 +370,8 @@ function Home() {
           </div>
           <p className="text-sm text-muted-foreground">
             {hasSearch
-              ? `Showing ${visibleCatalogMovies.length} matching titles sorted by ${activeSortLabel.toLowerCase()}.`
-              : `Showing all available titles sorted by ${activeSortLabel.toLowerCase()}.`}
+              ? `Loaded ${loadedCatalogLabel} matching titles sorted by ${activeSortLabel.toLowerCase()}.`
+              : `Loaded ${loadedCatalogLabel} titles sorted by ${activeSortLabel.toLowerCase()}.`}
           </p>
         </div>
 
@@ -290,14 +381,56 @@ function Home() {
           <div className="surface-panel p-6 text-center text-destructive">{catalogError}</div>
         ) : visibleCatalogMovies.length === 0 ? (
           <div className="surface-panel p-6 text-center text-muted-foreground">
-            {hasSearch ? 'No titles match the current search.' : 'All available titles are already shown above.'}
+            {hasSearch
+              ? 'No titles match the current search.'
+              : catalogHasMore
+                ? 'No non-featured titles in this batch yet. Load more to continue.'
+                : 'All available titles are already shown above.'}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-7">
-            {visibleCatalogMovies.map((movie) => (
-              <MovieCard key={movie.movie_id ?? movie.id} movie={movie} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 gap-3 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-7">
+              {visibleCatalogMovies.map((movie) => (
+                <MovieCard key={movie.movie_id ?? movie.id} movie={movie} />
+              ))}
+            </div>
+
+            {catalogHasMore ? (
+              <div className="surface-panel mt-3 flex flex-col items-center gap-3 p-4 text-center">
+                <div ref={loadMoreTriggerRef} className="h-1 w-full" aria-hidden="true" />
+                <p className="text-sm text-muted-foreground">
+                  {catalogLoadingMore ? 'Loading more titles...' : 'Scroll to load more titles.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={loadMoreCatalogMovies}
+                  disabled={catalogLoadingMore}
+                  className="inline-flex h-10 items-center justify-center rounded-full border border-border/70 bg-background/70 px-5 text-sm font-semibold text-foreground transition hover:border-primary/40 hover:bg-background disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {catalogLoadingMore ? 'Loading...' : 'Load more'}
+                </button>
+              </div>
+            ) : null}
+
+            {catalogLoadMoreError ? (
+              <div className="surface-panel mt-3 flex flex-col items-center gap-2 p-4 text-center">
+                <p className="text-sm text-destructive">{catalogLoadMoreError}</p>
+                <button
+                  type="button"
+                  onClick={loadMoreCatalogMovies}
+                  className="inline-flex h-10 items-center justify-center rounded-full border border-destructive/30 bg-destructive/10 px-5 text-sm font-semibold text-destructive transition hover:bg-destructive/15"
+                >
+                  Retry loading
+                </button>
+              </div>
+            ) : null}
+
+            {!catalogHasMore ? (
+              <p className="pb-1 text-center text-xs uppercase tracking-[0.2em] text-muted-foreground/80">
+                End of catalog
+              </p>
+            ) : null}
+          </>
         )}
       </section>
     </div>
