@@ -39,6 +39,35 @@ function parseTotalPages(result, fallbackLimit = CATALOG_PAGE_SIZE) {
   return 1;
 }
 
+function Button({
+  children,
+  size = "base",
+  variant = "primary",
+  fluid = false,
+  ...props
+}) {
+  const sizes = {
+    sm: "text-sm px-3 py-1.5",
+    base: "text-base px-4 py-2",
+    lg: "text-lg px-5 py-2.5",
+    xl: "text-xl px-6 py-3",
+  };
+
+  return (
+    <button
+      {...props}
+      className={`
+        rounded-2xl font-medium transition-all duration-200
+        ${variants[variant]}
+        ${fluid ? "text-[clamp(0.9rem,2vw,1.5rem)] px-4 py-2" : sizes[size]}
+      `}
+    >
+      {children}
+    </button>
+  );
+}
+
+
 function Home() {
   const [showcaseMovies, setShowcaseMovies] = useState([]);
   const [catalogMovies, setCatalogMovies] = useState([]);
@@ -58,6 +87,7 @@ function Home() {
   const [sourceTick, setSourceTick] = useState(0);
   const catalogRequestTokenRef = useRef(0);
   const loadMoreTriggerRef = useRef(null);
+  const [fontScale, setFontScale] = useState(1);
 
   useEffect(() => {
     const unsubscribe = onDataSourceChanged(() => {
@@ -257,11 +287,33 @@ function Home() {
     : `${visibleCatalogMovies.length}`;
 
   return (
+  <div style={{ fontSize: `${fontScale}rem` }}>
     <div className="space-y-6 md:space-y-7">
       <section className="surface-panel relative overflow-hidden px-4 py-4 sm:px-5 md:px-6 md:py-5">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(131,92,246,0.22),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.04),transparent_58%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(147,112,255,0.24),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.03),transparent_54%)]" />
         <div className="relative space-y-3">
           <span className="eyebrow">Movie Database Project</span>
+          <div className="absolute right-0 top-0 flex gap-2">
+                <button
+                  onClick={() => setFontScale((s) => Math.max(s - 0.1, 0.8))}
+                  className="rounded-full border border-border/70 bg-background/50 
+                            px-3 py-1.5 text-foreground backdrop-blur-sm
+                            hover:bg-background/70 transition
+                            text-[clamp(0.8rem,1.5vw,1.2rem)] font-medium"
+                >
+                  Reduce Size
+                </button>
+
+                <button
+                  onClick={() => setFontScale((s) => Math.min(s + 0.1, 1.5))}
+                  className="rounded-full border border-border/70 bg-background/50 
+                            px-3 py-1.5 text-foreground backdrop-blur-sm
+                            hover:bg-background/70 transition
+                            text-[clamp(0.8rem,1.5vw,1.2rem)] font-medium"
+                >
+                  Increase Size
+                </button>
+              </div>
           <h1 className="max-w-3xl text-4xl leading-none sm:text-5xl md:text-6xl">
             Browse the collection with a clearer layout.
           </h1>
@@ -434,6 +486,7 @@ function Home() {
         )}
       </section>
     </div>
+  </div>
   );
 }
 
