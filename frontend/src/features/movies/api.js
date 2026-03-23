@@ -2,11 +2,12 @@ import { movies as mockMovies } from "@/mocks/movies"
 
 const DATA_SOURCE_KEY = "movie-data-source"
 const DATA_SOURCE_CHANGED_EVENT = "movie-data-source-changed"
-const VALID_DATA_SOURCES = ["auto", "mock", "backend"]
+const VALID_DATA_SOURCES = ["mock", "backend"]
+const DEFAULT_DATA_SOURCE = "backend"
 
 function normalizeDataSource(value) {
   const source = String(value ?? "").toLowerCase()
-  return VALID_DATA_SOURCES.includes(source) ? source : "auto"
+  return VALID_DATA_SOURCES.includes(source) ? source : DEFAULT_DATA_SOURCE
 }
 
 export function getDataSource() {
@@ -129,11 +130,7 @@ export async function getMovies(filters = {}) {
 
     return res.json()
   } catch {
-    if (dataSource === "backend") {
-      throw new Error("Failed to fetch movies from backend.")
-    }
-
-    return getMockMovies(filters)
+    throw new Error("Failed to fetch movies from backend.")
   }
 }
 
@@ -158,16 +155,6 @@ export async function getMovie(id) {
 
     return res.json()
   } catch {
-    if (dataSource === "backend") {
-      throw new Error("Failed to fetch movie from backend.")
-    }
-
-    const movie = mockMovies.find((item) => String(item.id) === String(id))
-
-    if (!movie) {
-      throw new Error(`Movie ${id} not found`)
-    }
-
-    return normalizeMovie(movie)
+    throw new Error("Failed to fetch movie from backend.")
   }
 }
