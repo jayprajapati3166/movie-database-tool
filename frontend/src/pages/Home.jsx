@@ -301,7 +301,7 @@ function Home() {
                             hover:bg-background/70 transition
                             text-[clamp(0.8rem,1.5vw,1.2rem)] font-medium"
                 >
-                  Reduce Font Size
+                  Reduce Size
                 </button>
 
                 <button
@@ -311,7 +311,7 @@ function Home() {
                             hover:bg-background/70 transition
                             text-[clamp(0.8rem,1.5vw,1.2rem)] font-medium"
                 >
-                  Increase Font Size
+                  Increase Size
                 </button>
               </div>
           <h1 className="max-w-3xl text-4xl leading-none sm:text-5xl md:text-6xl">
