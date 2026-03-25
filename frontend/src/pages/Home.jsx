@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronDown, Clapperboard, Search, SlidersHorizontal } from 'lucide-react';
 import { getMovies, onDataSourceChanged } from '../features/movies/api';
 import MovieCard from '../components/MovieCard';
+import HeroSlider from "../components/HeroSlider"; 
 
 const SORT_OPTIONS = {
   newest: { sortBy: 'release_date', order: 'desc' },
@@ -288,6 +289,7 @@ function Home() {
 
   return (
   <div style={{ fontSize: `${fontScale}rem` }}>
+    <HeroSlider />
     <div className="space-y-6 md:space-y-7">
       <section className="surface-panel relative overflow-hidden px-4 py-4 sm:px-5 md:px-6 md:py-5">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(131,92,246,0.22),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.04),transparent_58%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(147,112,255,0.24),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.03),transparent_54%)]" />
