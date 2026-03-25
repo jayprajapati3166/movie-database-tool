@@ -91,7 +91,13 @@ export const fetchMovieOverview = async (movieTitle, year) => {
       return result;
     }
 
-    return { overview: "No description available.", rating: 0, runtime: 0, budget: 0 };
+    return {
+      overview: "No description available.",
+      rating: null,
+      runtime: null,
+      budget: null,
+      revenue: null,
+    };
   } catch (error) {
     console.error('Error fetching overview:', error);
     return null;

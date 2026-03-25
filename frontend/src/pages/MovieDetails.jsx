@@ -18,6 +18,16 @@ export default function MovieDetails() {
   const [budget, setBudget] = useState(null)
   const [revenue, setRevenue] = useState(null)
 
+  const formatRating = (value) => {
+    const amount = Number(value)
+
+    if (!Number.isFinite(amount)) {
+      return "N/A"
+    }
+
+    return amount.toFixed(1)
+  }
+
   const formatCurrency = (value) => {
     const amount = Number(value)
 
@@ -71,7 +81,7 @@ export default function MovieDetails() {
 
         setPosterUrl(url);
         setOverview(data?.overview ?? "No description available.");
-        setRating(data?.rating ? Number(data.rating).toFixed(1) : (movie.avg_rating ?? "N/A"));
+        setRating(data?.rating != null ? formatRating(data.rating) : formatRating(movie.avg_rating));
         setRuntime(data?.runtime ?? movie.runtime);
         setBudget(data?.budget ?? movie.budget);
         setRevenue(data?.revenue ?? movie.revenue);
@@ -98,7 +108,7 @@ export default function MovieDetails() {
   const releaseYear = movie.release_date
     ? new Date(movie.release_date).getFullYear()
     : (movie.year ?? "N/A")
-  const displayRating = rating ?? movie.avg_rating ?? "N/A"
+  const displayRating = rating ?? formatRating(movie.avg_rating)
   const synopsis = overview || "No description available."
 
   const heroMetrics = [
