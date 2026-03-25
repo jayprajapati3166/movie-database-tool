@@ -7,12 +7,8 @@ async function listMovies(filters) {
     const values = [];
     let where = "WHERE 1=1";
     let join = "";
-    let ratingJoin = `
-    LEFT JOIN movie_links l ON l.tmdb_id = m.movie_id
-    LEFT JOIN ratings r ON r.movie_id = l.movie_lens_id
-`;
-    let groupBy = "GROUP BY m.movie_id";
     let having = "";
+    let groupBy = "";
 
     if (filters.year) {
         values.push(filters.year);
@@ -69,22 +65,15 @@ async function listMovies(filters) {
     }
     
     if (filters.minRating != null) {
-        values.push(filters.minRating);
-        if (having) {
-            having += ` AND COALESCE(AVG(r.score), 0) >= $${values.length}`;     
-        } else {
-            having = `HAVING COALESCE(AVG(r.score), 0) >= $${values.length}`;
-        }
-    }
+    values.push(filters.minRating);
+    where += ` AND m.avg_rating >= $${values.length}`;
+}
 
-    if (filters.maxRating != null) {
-        values.push(filters.maxRating);
-        if (having) {
-            having += ` AND AVG(r.score) <= $${values.length}`;     
-        } else {
-            having = `HAVING COALESCE(AVG(r.score), 0) <= $${values.length}`;
-        }
-    }
+if (filters.maxRating != null) {
+    values.push(filters.maxRating);
+    where += ` AND m.avg_rating <= $${values.length}`;
+}
+
     const sortBy = ALLOWED_SORT.has(filters.sortBy) ? filters.sortBy : "release_date";
     const order = ALLOWED_ORDER.has(String(filters.order).toLowerCase()) ? String(filters.order).toUpperCase() : "DESC";
 
@@ -95,7 +84,7 @@ async function listMovies(filters) {
 
     // total count for pagination 
 
-    const countQuery = `SELECT COUNT(*)::INT AS total FROM ( SELECT m.movie_id FROM movies m ${join} ${ratingJoin} ${where} ${groupBy} ${having}) sub;`;
+    const countQuery = `SELECT COUNT(DISTINCT m.movie_id) AS total FROM movies m ${join} ${where}`;
 
     const countRes = await pool.query(countQuery, values);
     const total = countRes.rows[0].total;
@@ -112,13 +101,12 @@ async function listMovies(filters) {
           m.runtime,
           m.budget,
           m.revenue,
-          COALESCE(AVG(r.score), 0)::NUMERIC(3,1) AS avg_rating,
-          COUNT(r.score)::INT AS rating_count
+          m.avg_rating,
+          m.rating_count
 
 
         FROM movies m
         ${join}
-        ${ratingJoin}
         ${where}
         ${groupBy}
         ${having}
@@ -152,8 +140,8 @@ async function getMovieById(id) {
             m.runtime,
             m.budget,
             m.revenue,
-            COALESCE(ROUND(AVG(r.score)::numeric,1), 0) AS avg_rating,
-            COUNT(r.score) AS rating_count
+            m.avg_rating,
+            m.rating_count
         FROM movies m
         LEFT JOIN movie_links l ON l.tmdb_id = m.movie_id
         LEFT JOIN ratings r ON r.movie_id = l.movie_lens_id
