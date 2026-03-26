@@ -37,9 +37,7 @@ function parseTotalPages(result, fallbackLimit = CATALOG_PAGE_SIZE) {
   }
 
   return 1;
-}
-
-function Button({
+}function Button({
   children,
   size = "base",
   variant = "primary",

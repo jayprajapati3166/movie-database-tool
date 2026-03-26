@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown, Clock3, Moon, Sun } from 'lucide-react';
+import { ChevronDown, Clock3, Moon, Sun} from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
 import { getDataSource, setDataSource } from '@/features/movies/api';
 import { getRecentlyViewedMovies, onRecentlyViewedChanged } from '@/features/movies/recentlyViewed';
@@ -24,6 +24,13 @@ function Navbar() {
     return true;
   });
 
+  const [isColour, setisColour] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('accessibility') === 'active';
+    }
+    return false;
+  });
+
   useEffect(() => {
     const root = document.documentElement;
     const theme = isDark ? 'dark' : 'light';
@@ -36,7 +43,14 @@ function Navbar() {
     if (themeColorMeta) {
       themeColorMeta.setAttribute('content', isDark ? '#170d34' : '#f3edff');
     }
-  }, [isDark]);
+    if (isColour) {
+      document.documentElement.classList.add('colour');
+      localStorage.setItem('accessibility', 'active'); 
+    } else {
+      document.documentElement.classList.remove('colour');
+      localStorage.setItem('accessibility', 'standard'); 
+    }
+  }, [isDark, isColour]);
 
   useEffect(() => {
     const syncRecentlyViewedCount = () => {
@@ -47,6 +61,7 @@ function Navbar() {
   }, []);
 
   const toggleTheme = () => setIsDark((value) => !value);
+  const toggleColour = () => setisColour((value) => !value);
   const handleDataSourceChange = (event) => {
     const nextSource = setDataSource(event.target.value);
     setDataSourceState(nextSource);
@@ -116,6 +131,13 @@ function Navbar() {
             </select>
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
           </div>
+          <button
+            onClick={toggleColour}
+            className="p-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white"
+            aria-label='Toggle Colour Blind Mode'
+          >
+            <span>{isColour? "Standard Colour": "Colour blind Mode"}</span>
+          </button>
           <button
             type="button"
             onClick={toggleTheme}
