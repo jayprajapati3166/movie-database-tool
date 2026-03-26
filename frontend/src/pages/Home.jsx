@@ -46,8 +46,6 @@ function Home() {
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Browse Movies</h1>
-        
-        {/* Filters */}
         <div className="mb-6">
           <div className="bg-gray-200 dark:bg-gray-800 rounded-xl p-3 flex gap-3 items-center shadow-sm">
             <input

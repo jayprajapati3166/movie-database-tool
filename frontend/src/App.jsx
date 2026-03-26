@@ -3,7 +3,7 @@ import { router } from './app/router';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen transition-colors duration-300">
       <RouterProvider router={router} />
     </div>
   );
