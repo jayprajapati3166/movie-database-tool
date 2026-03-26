@@ -1,6 +1,14 @@
-const RECENTLY_VIEWED_KEY = "movie-recently-viewed"
-const RECENTLY_VIEWED_CHANGED_EVENT = "movie-recently-viewed-changed"
+import { getCurrentUser, onAuthChanged } from '@/features/auth/authStore'
+
+const RV_PREFIX = 'movie-recently-viewed'
+const LEGACY_KEY = RV_PREFIX
+const RECENTLY_VIEWED_CHANGED_EVENT = 'movie-recently-viewed-changed'
 const MAX_RECENTLY_VIEWED = 12
+
+function storageKey() {
+  const sub = getCurrentUser()?.sub
+  return sub ? `${RV_PREFIX}:${sub}` : `${RV_PREFIX}:guest`
+}
 
 function getMovieId(movie) {
   return movie?.movie_id ?? movie?.id ?? null
@@ -36,7 +44,15 @@ function readStoredRecentlyViewedMovies() {
   }
 
   try {
-    const storedMovies = window.localStorage.getItem(RECENTLY_VIEWED_KEY)
+    const key = storageKey()
+    let storedMovies = window.localStorage.getItem(key)
+    if (!storedMovies && key.endsWith(':guest')) {
+      storedMovies = window.localStorage.getItem(LEGACY_KEY)
+      if (storedMovies) {
+        window.localStorage.setItem(key, storedMovies)
+        window.localStorage.removeItem(LEGACY_KEY)
+      }
+    }
 
     if (!storedMovies) {
       return []
@@ -57,7 +73,7 @@ function readStoredRecentlyViewedMovies() {
 }
 
 function writeStoredRecentlyViewedMovies(movies) {
-  window.localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(movies))
+  window.localStorage.setItem(storageKey(), JSON.stringify(movies))
   window.dispatchEvent(
     new CustomEvent(RECENTLY_VIEWED_CHANGED_EVENT, {
       detail: { movies },
@@ -97,7 +113,7 @@ export function onRecentlyViewedChanged(handler) {
   }
 
   const handleChange = (event) => {
-    if (event?.type === "storage" && event.key !== RECENTLY_VIEWED_KEY) {
+    if (event?.type === 'storage' && event.key !== storageKey()) {
       return
     }
 
@@ -105,10 +121,12 @@ export function onRecentlyViewedChanged(handler) {
   }
 
   window.addEventListener(RECENTLY_VIEWED_CHANGED_EVENT, handleChange)
-  window.addEventListener("storage", handleChange)
+  window.addEventListener('storage', handleChange)
+  const offAuth = onAuthChanged(() => handler({ type: 'auth' }))
 
   return () => {
     window.removeEventListener(RECENTLY_VIEWED_CHANGED_EVENT, handleChange)
-    window.removeEventListener("storage", handleChange)
+    window.removeEventListener('storage', handleChange)
+    offAuth()
   }
 }
