@@ -1,12 +1,16 @@
-import { useEffect, useState } from 'react';
-import { ChevronDown, Clock3, Moon, Sun } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ChevronDown, Clock3, KeyRound, LogOut, Moon, Sun } from 'lucide-react';
 import { Link, NavLink } from 'react-router-dom';
+import { clearCurrentUser, getCurrentUser, onAuthChanged } from '@/features/auth/authStore';
 import { getDataSource, setDataSource } from '@/features/movies/api';
 import { getRecentlyViewedMovies, onRecentlyViewedChanged } from '@/features/movies/recentlyViewed';
 
 function Navbar({ setFontScale}) {
   const [dataSource, setDataSourceState] = useState(() => getDataSource());
   const [recentlyViewedCount, setRecentlyViewedCount] = useState(() => getRecentlyViewedMovies().length);
+  const [user, setUser] = useState(() => getCurrentUser());
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
+  const logoutConfirmTimerRef = useRef(null);
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       const storedTheme = localStorage.getItem('theme');
@@ -46,10 +50,31 @@ function Navbar({ setFontScale}) {
     return onRecentlyViewedChanged(syncRecentlyViewedCount);
   }, []);
 
+  useEffect(() => {
+    return onAuthChanged(() => setUser(getCurrentUser()));
+  }, []);
+
+  useEffect(() => {
+    return () => clearTimeout(logoutConfirmTimerRef.current);
+  }, []);
+
+  const isSignedIn = Boolean(user?.provider === 'google' && user?.sub);
   const toggleTheme = () => setIsDark((value) => !value);
   const handleDataSourceChange = (event) => {
     const nextSource = setDataSource(event.target.value);
     setDataSourceState(nextSource);
+  };
+
+  const handleLogoutClick = () => {
+    if (!logoutConfirm) {
+      setLogoutConfirm(true);
+      clearTimeout(logoutConfirmTimerRef.current);
+      logoutConfirmTimerRef.current = setTimeout(() => setLogoutConfirm(false), 4000);
+      return;
+    }
+    clearTimeout(logoutConfirmTimerRef.current);
+    setLogoutConfirm(false);
+    clearCurrentUser();
   };
 
   return (
@@ -103,6 +128,46 @@ function Navbar({ setFontScale}) {
                 </NavLink>
               </li>
             ) : null}
+            {isSignedIn ? (
+              <li className="flex items-center gap-2">
+                {user?.picture ? (
+                  <img
+                    src={user.picture}
+                    alt=""
+                    className="hidden h-9 w-9 rounded-full border border-border/70 object-cover sm:block"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleLogoutClick}
+                  className={`inline-flex h-9 max-w-[min(100%,14rem)] items-center gap-2 rounded-full border px-3.5 text-[0.68rem] font-semibold transition-colors whitespace-nowrap sm:max-w-none ${
+                    logoutConfirm
+                      ? 'border-destructive/40 bg-destructive/10 text-destructive hover:border-destructive/60'
+                      : 'border-border/70 bg-card/70 uppercase tracking-[0.24em] text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                  }`}
+                >
+                  <LogOut className="size-3.5 shrink-0" />
+                  <span className="truncate">{logoutConfirm ? 'Tap again to sign out' : 'Logout'}</span>
+                </button>
+              </li>
+            ) : (
+              <li>
+                <NavLink
+                  to="/auth"
+                  className={({ isActive }) =>
+                    `inline-flex h-9 items-center gap-2 rounded-full border px-3.5 text-[0.68rem] font-semibold uppercase tracking-[0.24em] transition-colors whitespace-nowrap ${
+                      isActive
+                        ? 'border-primary/70 bg-primary text-primary-foreground shadow-[0_16px_30px_-22px_rgba(112,79,255,0.7)]'
+                        : 'border-border/70 bg-card/70 text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                    }`
+                  }
+                >
+                  <KeyRound className="size-3.5" />
+                  Login
+                </NavLink>
+              </li>
+            )}
           </ul>
           <div className="relative">
             <select
