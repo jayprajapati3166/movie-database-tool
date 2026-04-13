@@ -4,7 +4,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { getDataSource, setDataSource } from '@/features/movies/api';
 import { getRecentlyViewedMovies, onRecentlyViewedChanged } from '@/features/movies/recentlyViewed';
 
-function Navbar() {
+function Navbar({ setFontScale}) {
   const [dataSource, setDataSourceState] = useState(() => getDataSource());
   const [recentlyViewedCount, setRecentlyViewedCount] = useState(() => getRecentlyViewedMovies().length);
   const [isDark, setIsDark] = useState(() => {
@@ -115,6 +115,21 @@ function Navbar() {
               <option value="backend">Backend</option>
             </select>
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => window.setFontScale((s) => Math.max(s - 0.1, 0.8))}
+              className="group inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-card/75 text-foreground shadow-sm transition-colors hover:border-primary/40 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              A-
+            </button>
+
+            <button
+              onClick={() => window.setFontScale((s) => Math.min(s + 0.1, 1.5))}
+              className="group inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-card/75 text-foreground shadow-sm transition-colors hover:border-primary/40 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              A+
+            </button>
           </div>
           <button
             type="button"

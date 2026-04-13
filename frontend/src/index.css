@@ -125,6 +125,7 @@
   html {
     color-scheme: light;
     scroll-behavior: smooth;
+    font-size: calc(16px * var(--font-scale, 1));
   }
 
   html.dark {
